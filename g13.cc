@@ -1,19 +1,8 @@
+/* boost free */
+
 #include "g13.h"
 #include <fstream>
 #include "logo.h"
-
-#if 0
-#include <boost/log/attributes.hpp>
-#include <boost/log/core/core.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/expressions/formatters/stream.hpp>
-#include <boost/log/sources/severity_feature.hpp>
-#include <boost/log/sources/severity_logger.hpp>
-#include <boost/log/support/date_time.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/log/utility/setup.hpp>
-#include <boost/log/utility/setup/console.hpp>
-#endif
 
 using namespace std;
 
@@ -44,7 +33,7 @@ void G13_Device::set_mode_leds(int leds) {
     int r = libusb_control_transfer(handle, LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
                                     9, 0x305, 0, usb_data, 5, 1000);
     if (r != 5) {
-        G13_LOG(error, "Problem sending data");
+        G13_ERR("Problem sending data");
         return;
     }
 }
@@ -58,7 +47,7 @@ void G13_Device::set_key_color(int red, int green, int blue) {
     error = libusb_control_transfer(handle, LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
                                     9, 0x307, 0, usb_data, 5, 1000);
     if (error != 5) {
-        G13_LOG(error, "Problem sending data");
+        G13_ERR("Problem sending data");
         return;
     }
 }
@@ -70,23 +59,23 @@ void G13_Manager::discover_g13s(libusb_device** devs, ssize_t count, vector<G13_
         libusb_device_descriptor desc;
         int r = libusb_get_device_descriptor(devs[i], &desc);
         if (r < 0) {
-            G13_LOG(error, "Failed to get device descriptor");
+            G13_ERR("Failed to get device descriptor");
             return;
         }
         if (desc.idVendor == G13_VENDOR_ID && desc.idProduct == G13_PRODUCT_ID) {
             libusb_device_handle* handle;
             int r = libusb_open(devs[i], &handle);
             if (r != 0) {
-                G13_LOG(error, "Error opening G13 device");
+                G13_ERR("Error opening G13 device");
                 return;
             }
             if (libusb_kernel_driver_active(handle, 0) == 1)
                 if (libusb_detach_kernel_driver(handle, 0) == 0)
-                    G13_LOG(info, "Kernel driver detached");
+                    G13_ERR("Kernel driver detached");
 
             r = libusb_claim_interface(handle, 0);
             if (r < 0) {
-                G13_LOG(error, "Cannot Claim Interface");
+                G13_ERR("Cannot Claim Interface");
                 return;
             }
             g13s.push_back(new G13_Device(*this, handle, g13s.size()));
@@ -113,16 +102,16 @@ int g13_create_uinput(G13_Device* g13) {
                                        ? "/dev/input/uinput"
                                        : access("/dev/uinput", F_OK) == 0 ? "/dev/uinput" : 0;
     if (!dev_uinput_fname) {
-        G13_LOG(error, "Could not find an uinput device");
+        G13_ERR("Could not find an uinput device");
         return -1;
     }
     if (access(dev_uinput_fname, W_OK) != 0) {
-        G13_LOG(error, dev_uinput_fname << " doesn't grant write permissions");
+        G13_ERR(dev_uinput_fname << " doesn't grant write permissions");
         return -1;
     }
     int ufile = open(dev_uinput_fname, O_WRONLY | O_NDELAY);
     if (ufile <= 0) {
-        G13_LOG(error, "Could not open uinput");
+        G13_ERR("Could not open uinput");
         return -1;
     }
     memset(&uinp, 0, sizeof(uinp));
@@ -155,12 +144,12 @@ int g13_create_uinput(G13_Device* g13) {
 
     int retcode = write(ufile, &uinp, sizeof(uinp));
     if (retcode < 0) {
-        G13_LOG(error, "Could not write to uinput device (" << retcode << ")");
+        G13_ERR("Could not write to uinput device (" << retcode << ")");
         return -1;
     }
     retcode = ioctl(ufile, UI_DEV_CREATE);
     if (retcode) {
-        G13_LOG(error, "Error creating uinput device for G13");
+        G13_ERR("Error creating uinput device for G13");
         return -1;
     }
     return ufile;
@@ -188,7 +177,7 @@ void G13_Device::register_context(libusb_context* _ctx) {
     _output_pipe_fid = g13_create_fifo(_output_pipe_name.c_str());
 
     if (_input_pipe_fid == -1) {
-        G13_LOG(error, "failed opening pipe");
+        G13_ERR("failed opening pipe");
     }
 }
 
@@ -202,7 +191,7 @@ void G13_Device::cleanup() {
 }
 
 void G13_Manager::cleanup() {
-    G13_LOG(info, "cleaning up");
+    G13_OUT("cleaning up");
     for (int i = 0; i < g13s.size(); i++) {
         g13s[i]->cleanup();
         delete g13s[i];
@@ -239,7 +228,7 @@ int G13_Device::read_keys() {
                                           G13_REPORT_SIZE, &size, 100);
 
     if (error && error != LIBUSB_ERROR_TIMEOUT) {
-        G13_LOG(error, "Error while reading keys: " << error << " ("
+        G13_ERR("Error while reading keys: " << error << " ("
                                                     << describe_libusb_error_code(error) << ")");
         //    G13_LOG( error, "Stopping daemon" );
         //    return -1;
@@ -255,7 +244,7 @@ int G13_Device::read_keys() {
 void G13_Device::read_config_file(const std::string& filename) {
     std::ifstream s(filename);
 
-    G13_LOG(info, "reading configuration from " << filename);
+    G13_OUT("reading configuration from " << filename);
     while (s.good()) {
         // grab a line
         char buf[1024];
@@ -274,7 +263,7 @@ void G13_Device::read_config_file(const std::string& filename) {
 
         // send it
         if (buf[0]) {
-            G13_LOG(info, "  cfg: " << buf);
+            G13_OUT("  cfg: " << buf);
             command(buf);
         }
     }
@@ -292,7 +281,7 @@ void G13_Device::read_commands() {
         unsigned char buf[1024 * 1024];
         memset(buf, 0, 1024 * 1024);
         ret = read(_input_pipe_fid, buf, 1024 * 1024);
-        G13_LOG(trace, "read " << ret << " characters");
+        G13_LOG(log4cpp::Priority::DEBUG << "read " << ret << " characters");
 
         if (ret == 960) {  // TODO probably image, for now, don't test, just assume image
             lcd().image(buf, ret);
@@ -306,7 +295,7 @@ void G13_Device::read_commands() {
                 boost::split(command_comment, cmd, boost::is_any_of("#"));
 
                 if (command_comment.size() > 0 && command_comment[0] != std::string("")) {
-                    G13_LOG(info, "command: " << command_comment[0]);
+                    G13_OUT("command: " << command_comment[0]);
                     command(command_comment[0].c_str());
                 }
             }
@@ -381,12 +370,12 @@ void G13_Action_Keys::act(G13_Device& g13, bool is_down) {
     if (is_down) {
         for (int i = 0; i < _keys.size(); i++) {
             g13.send_event(EV_KEY, _keys[i], is_down);
-            G13_LOG(trace, "sending KEY DOWN " << _keys[i]);
+            G13_LOG(log4cpp::Priority::DEBUG << "sending KEY DOWN " << _keys[i]);
         }
     } else {
         for (int i = _keys.size() - 1; i >= 0; i--) {
             g13.send_event(EV_KEY, _keys[i], is_down);
-            G13_LOG(trace, "sending KEY UP " << _keys[i]);
+            G13_LOG(log4cpp::Priority::DEBUG << "sending KEY UP " << _keys[i]);
         }
     }
 }
@@ -469,7 +458,7 @@ void G13_Device::dump(std::ostream& o, int detail) {
 
 #define RETURN_FAIL(message)     \
     {                            \
-        G13_LOG(error, message); \
+        G13_ERR(message); \
         return;                  \
     }
 
@@ -515,7 +504,7 @@ void G13_Device::_init_commands() {
             } else {
                 RETURN_FAIL("bind key " << keyname << " unknown");
             }
-            G13_LOG(trace, "bind " << keyname << " [" << action << "]");
+            G13_LOG(log4cpp::Priority::DEBUG << "bind " << keyname << " [" << action << "]");
         } catch (const std::exception& ex) {
             RETURN_FAIL("bind " << keyname << " " << action << " failed : " << ex.what());
         }
@@ -646,7 +635,7 @@ std::string G13_Manager::string_config_value(const std::string& name) const {
     }
 }
 void G13_Manager::set_string_config_value(const std::string& name, const std::string& value) {
-    G13_LOG(info, "set_string_config_value " << name << " = " << repr(value));
+    G13_OUT("set_string_config_value " << name << " = " << repr(value));
     _string_config_values[name] = value;
 }
 
@@ -685,20 +674,20 @@ int G13_Manager::run() {
 
     ret = libusb_init(&ctx);
     if (ret < 0) {
-        G13_LOG(error, "Initialization error: " << ret);
+        G13_ERR("Initialization error: " << ret);
         return 1;
     }
 
     libusb_set_debug(ctx, 3);
     cnt = libusb_get_device_list(ctx, &devs);
     if (cnt < 0) {
-        G13_LOG(error, "Error while getting device list");
+        G13_ERR("Error while getting device list");
         return 1;
     }
 
     discover_g13s(devs, cnt, g13s);
     libusb_free_device_list(devs, 1);
-    G13_LOG(info, "Found " << g13s.size() << " G13s");
+    G13_OUT("Found " << g13s.size() << " G13s");
     if (g13s.size() == 0) {
         return 1;
     }
@@ -711,12 +700,12 @@ int G13_Manager::run() {
         g13s[0]->write_lcd_file(logo_filename);
     }
 
-    G13_LOG(info, "Active Stick zones ");
+    G13_OUT("Active Stick zones ");
     g13s[0]->stick().dump(std::cout);
 
     std::string config_fn = string_config_value("config");
     if (config_fn.size()) {
-        G13_LOG(info, "config_fn = " << config_fn);
+        G13_OUT("config_fn = " << config_fn);
         g13s[0]->read_config_file(config_fn);
     }
 

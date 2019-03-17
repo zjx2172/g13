@@ -1,7 +1,7 @@
 all: g13d pbm2lpbm
 
-FLAGS=$(CXXFLAGS) -DBOOST_LOG_DYN_LINK -std=c++17
-LIBS=-lusb-1.0 -lboost_log -lboost_log_setup-mt -lboost_thread -lboost_system-mt -lpthread
+FLAGS=$(CXXFLAGS) -std=c++17
+LIBS=-lusb-1.0 -lboost_program_options -llog4cpp -lboost_thread -lboost_system -lpthread
 
 g13.o: g13.h helper.hpp g13.cc
 	g++ $(FLAGS) -c g13.cc
@@ -32,9 +32,7 @@ helper.o: helper.hpp helper.cpp
 g13d: g13_main.o g13.o g13_log.o g13_fonts.o g13_lcd.o g13_stick.o g13_keys.o helper.o
 	g++ -o g13d -std=c++0x \
 		g13_main.o g13.o g13_log.o g13_fonts.o g13_lcd.o g13_stick.o g13_keys.o helper.o \
-	 	-lusb-1.0 -lboost_program_options \
-	 	-lboost_log    \
-	 	-lboost_system -lpthread
+	    $(LIBS)
 
 pbm2lpbm: pbm2lpbm.cc
 	g++ -o pbm2lpbm pbm2lpbm.cc

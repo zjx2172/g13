@@ -2,8 +2,10 @@
 #define __G13_H__
 
 #include "helper.hpp"
+#include <log4cpp/Category.hh>
+#include <log4cpp/Priority.hh>
 
-#include <boost/log/trivial.hpp>
+// #include <boost/log/trivial.hpp>
 
 #include <libusb-1.0/libusb.h>
 
@@ -20,8 +22,13 @@
 
 namespace G13 {
 
-#define G13_LOG(level, message) BOOST_LOG_TRIVIAL(level) << message
-#define G13_OUT(message) BOOST_LOG_TRIVIAL(info) << message
+//#define G13_LOG(level, message) BOOST_LOG_TRIVIAL(level) << message
+//#define G13_OUT(message) BOOST_LOG_TRIVIAL(info) << message
+
+#define G13_LOG(message) log4cpp::Category::getRoot() << message
+#define G13_ERR(message) log4cpp::Category::getRoot() << log4cpp::Priority::ERROR << message
+#define G13_OUT(message) log4cpp::Category::getRoot() << log4cpp::Priority::INFO << message
+
 
 const size_t G13_INTERFACE = 0;
 const size_t G13_KEY_ENDPOINT = 1;
@@ -481,7 +488,7 @@ class G13_Manager {
 
     std::string make_pipe_name(G13_Device* d, bool is_input);
 
-    void set_log_level(::boost::log::trivial::severity_level lvl);
+    void set_log_level(log4cpp::Priority::PriorityLevel lvl);
     void set_log_level(const std::string&);
 
    protected:
