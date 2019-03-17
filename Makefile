@@ -1,6 +1,6 @@
 all: g13d pbm2lpbm
 
-FLAGS=$(CXXFLAGS) -DBOOST_LOG_DYN_LINK -std=c++0x
+FLAGS=$(CXXFLAGS) -DBOOST_LOG_DYN_LINK -std=c++17
 LIBS=-lusb-1.0 -lboost_log -lboost_log_setup-mt -lboost_thread -lboost_system-mt -lpthread
 
 g13.o: g13.h helper.hpp g13.cc
@@ -36,13 +36,13 @@ g13d: g13_main.o g13.o g13_log.o g13_fonts.o g13_lcd.o g13_stick.o g13_keys.o he
 	 	-lboost_log    \
 	 	-lboost_system -lpthread
 
-pbm2lpbm: pbm2lpbm.c
-	g++ -o pbm2lpbm pbm2lpbm.c
+pbm2lpbm: pbm2lpbm.cc
+	g++ -o pbm2lpbm pbm2lpbm.cc
 
 package:
 	rm -Rf g13-userspace
 	mkdir g13-userspace
-	cp g13.cc g13.h logo.h Makefile pbm2lpbm.c g13-userspace
+	cp g13.cc g13.h logo.h Makefile pbm2lpbm.cc g13-userspace
 	tar cjf g13-userspace.tbz2 g13-userspace
 	rm -Rf g13-userspace
 clean: 
