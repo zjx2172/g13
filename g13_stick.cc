@@ -3,7 +3,7 @@
  */
 #include "g13.h"
 
-using namespace std;
+// using namespace std;
 
 namespace G13 {
 
@@ -32,7 +32,8 @@ G13_Stick::G13_Stick(G13_Device& keypad)
 }
 
 G13_StickZone* G13_Stick::zone(const std::string& name, bool create) {
-    BOOST_FOREACH (G13_StickZone& zone, _zones) {
+//    BOOST_FOREACH (G13_StickZone& zone, _zones) {
+    for (auto &zone : _zones) {
         if (zone.name() == name) {
             return &zone;
         }
@@ -67,14 +68,15 @@ void G13_Stick::remove_zone(const G13_StickZone& zone) {
     _zones.erase(std::remove(_zones.begin(), _zones.end(), target), _zones.end());
 }
 void G13_Stick::dump(std::ostream& out) const {
-    BOOST_FOREACH (const G13_StickZone& zone, _zones) {
+    // BOOST_FOREACH (const G13_StickZone& zone, _zones) {
+    for (auto &zone : _zones) {
         zone.dump(out);
-        out << endl;
+        out << std::endl;
     }
 }
 
 void G13_StickZone::dump(std::ostream& out) const {
-    out << "   " << setw(20) << name() << "   " << _bounds << "  ";
+    out << "   " << std::setw(20) << name() << "   " << _bounds << "  ";
     if (action()) {
         action()->dump(out);
     } else {
@@ -152,7 +154,10 @@ void G13_Stick::parse_joystick(unsigned char* buf) {
         _keypad.send_event(EV_ABS, ABS_Y, _current_pos.y);
 
     } else if (_stick_mode == STICK_KEYS) {
-        BOOST_FOREACH (G13_StickZone& zone, _zones) { zone.test(jpos); }
+        // BOOST_FOREACH (G13_StickZone& zone, _zones) { zone.test(jpos); }
+        for (auto &zone : _zones) {
+            zone.test(jpos);
+        }
         return;
 
     } else {

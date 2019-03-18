@@ -21,7 +21,7 @@
 #include "g13.h"
 #include "logo.h"
 
-using namespace std;
+// using namespace std;
 
 namespace G13 {
 
@@ -45,21 +45,23 @@ void G13_Device::write_lcd(unsigned char* data, size_t size) {
     int bytes_written;
     int error = libusb_interrupt_transfer(handle, LIBUSB_ENDPOINT_OUT | G13_LCD_ENDPOINT, buffer,
                                           G13_LCD_BUFFER_SIZE + 32, &bytes_written, 1000);
-    if (error)
-        G13_LOG(log4cpp::Priority::ERROR << "Error when transferring image: " << error << ", " << bytes_written
-                                                         << " bytes written");
+    if (error) {
+        G13_LOG(log4cpp::Priority::ERROR << "Error when transferring image: " << error << ", "
+                                         << bytes_written
+                                         << " bytes written");
+    }
 }
 
-void G13_Device::write_lcd_file(const string& filename) {
-    filebuf* pbuf;
-    ifstream filestr;
+void G13_Device::write_lcd_file(const std::string& filename) {
+    std::filebuf* pbuf;
+    std::ifstream filestr;
     size_t size;
 
     filestr.open(filename.c_str());
     pbuf = filestr.rdbuf();
 
-    size = pbuf->pubseekoff(0, ios::end, ios::in);
-    pbuf->pubseekpos(0, ios::in);
+    size = pbuf->pubseekoff(0, std::ios::end, std::ios::in);
+    pbuf->pubseekpos(0, std::ios::in);
 
     char buffer[size];
 

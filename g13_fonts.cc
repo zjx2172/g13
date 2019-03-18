@@ -1,6 +1,6 @@
 #include "g13.h"
 
-using namespace std;
+// using namespace std;
 
 namespace G13 {
 
@@ -374,16 +374,16 @@ void G13_FontChar::set_character(unsigned char* data, int width, unsigned flags)
     memset(dest, 0, CHAR_BUF_SIZE);
     if (flags && FF_ROTATE) {
         for (int x = 0; x < width; x++) {
-            unsigned char x_mask = 1 << x;
+            unsigned char x_mask = (unsigned char) 1 << x;
             for (int y = 0; y < 8; y++) {
-                unsigned char y_mask = 1 << y;
+                // unsigned char y_mask = 1 << y;
                 if (data[y] & x_mask) {
                     dest[x] |= 1 << y;
                 }
             }
         }
     } else {
-        memcpy(dest, data, width);
+        memcpy(dest, data, (size_t) width);
     }
     for (int x = 0; x < width; x++) {
         bits_inverted[x] = ~dest[x];

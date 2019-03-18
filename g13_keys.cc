@@ -3,7 +3,7 @@
  */
 #include "g13.h"
 
-using namespace std;
+// using namespace std;
 
 namespace G13 {
 
@@ -45,7 +45,7 @@ namespace G13 {
 
 void G13_Profile::_init_keys() {
     int key_index = 0;
-
+// TODO: de-boost
     // create a G13_Key entry for every key in G13_KEY_SEQ
 #define INIT_KEY(r, data, elem)                                    \
     {                                                              \
@@ -79,7 +79,8 @@ void G13_Key::dump(std::ostream& o) const {
 }
 void G13_Profile::dump(std::ostream& o) const {
     o << "Profile " << repr(name()) << std::endl;
-    BOOST_FOREACH (const G13_Key& key, _keys) {
+    // BOOST_FOREACH (const G13_Key& key, _keys) {
+    for (auto &key : _keys) {
         if (key.action()) {
             o << "   ";
             key.dump(o);
@@ -89,9 +90,9 @@ void G13_Profile::dump(std::ostream& o) const {
 }
 void G13_Profile::parse_keys(unsigned char* buf) {
     buf += 3;
-    for (size_t i = 0; i < _keys.size(); i++) {
-        if (_keys[i]._should_parse) {
-            _keys[i].parse_key(buf, &_keypad);
+    for (auto &_key : _keys) {
+        if (_key._should_parse) {
+            _key.parse_key(buf, &_keypad);
         }
     }
 }
@@ -101,7 +102,7 @@ G13_Key* G13_Profile::find_key(const std::string& keyname) {
     if (key >= 0 && key < _keys.size()) {
         return &_keys[key];
     }
-    return 0;
+    return nullptr;
 }
 
 // *************************************************************************
@@ -119,6 +120,8 @@ void G13_Key::parse_key(unsigned char* byte, G13_Device* g13) {
 
 void G13_Manager::init_keynames() {
     int key_index = 0;
+
+// TODO: de-boost
 
 // setup maps to let us convert between strings and G13 key names
 #define ADD_G13_KEY_MAPPING(r, data, elem)           \
