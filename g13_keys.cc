@@ -5,6 +5,34 @@
 
 // using namespace std;
 
+/**************************************************************************************************/
+
+// #include <iostream>
+/*
+
+enum Keys {
+#   define KEY(a) a,
+#   include "g13keys.def"
+#   undef KEY
+    ColoursCount
+};
+
+char const* const key_str[] = {
+#   define KEY(a) #a,
+#   include "g13keys.def"
+#   undef KEY
+        0
+};
+
+std::ostream& operator<<(std::ostream& os, enum Keys k)
+{
+    if (k >= ColoursCount || k < 0) return os << "???";
+    return os << key_str[k];
+}
+*/
+
+/**************************************************************************************************/
+
 namespace G13 {
 
 /*! G13_KEY_SEQ is a Boost Preprocessor sequence containing the
@@ -47,6 +75,7 @@ void G13_Profile::_init_keys() {
     int key_index = 0;
 // TODO: de-boost
     // create a G13_Key entry for every key in G13_KEY_SEQ
+    //         G13_Key key(*this, BOOST_PP_STRINGIZE(elem), key_index++);
 #define INIT_KEY(r, data, elem)                                    \
     {                                                              \
         G13_Key key(*this, BOOST_PP_STRINGIZE(elem), key_index++); \
