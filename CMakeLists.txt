@@ -23,4 +23,4 @@ add_executable(g13
 add_executable(pbm2lpbm
         pbm2lpbm.cc)
 
-target_link_libraries (g13 usb-1.0 log4cpp pthread)
+target_link_libraries (g13 usb-1.0 log4cpp pthread evdev)

@@ -2,6 +2,7 @@
  *
  */
 #include "g13.h"
+#include <libevdev-1.0/libevdev/libevdev.h>
 
 // using namespace std;
 
@@ -40,13 +41,25 @@ namespace G13 {
  * item corresponding to a specific bit in the G13's USB message
  * format.  Do NOT remove or insert items in this list.
  */
+/*
 
 #define G13_KEY_SEQ                                                                          \
-    /* byte 3 */ (G1)(G2)(G3)(G4)(G5)(G6)(G7)(G8) /* byte 4 */                               \
-        (G9)(G10)(G11)(G12)(G13)(G14)(G15)(G16) /* byte 5 */ (G17)(G18)(G19)(G20)(G21)(G22)( \
-            UNDEF1)(LIGHT_STATE) /* byte 6 */                                                \
-        (BD)(L1)(L2)(L3)(L4)(M1)(M2)(M3) /* byte 7 */ (MR)(LEFT)(DOWN)(TOP)(UNDEF3)(LIGHT)(  \
+    */
+/* byte 3 *//*
+ (G1)(G2)(G3)(G4)(G5)(G6)(G7)(G8) */
+/* byte 4 *//*
+                               \
+        (G9)(G10)(G11)(G12)(G13)(G14)(G15)(G16) */
+/* byte 5 *//*
+ (G17)(G18)(G19)(G20)(G21)(G22)( \
+            UNDEF1)(LIGHT_STATE) */
+/* byte 6 *//*
+                                                \
+        (BD)(L1)(L2)(L3)(L4)(M1)(M2)(M3) */
+/* byte 7 *//*
+ (MR)(LEFT)(DOWN)(TOP)(UNDEF3)(LIGHT)(  \
             LIGHT2)(MISC_TOGGLE)
+*/
 
 /*! G13_NONPARSED_KEY_SEQ is a Boost Preprocessor sequence containing the
  * G13 keys that shouldn't be tested input.  These aren't actually keys,
@@ -60,6 +73,7 @@ namespace G13 {
  * i.e. ESC is KEY_ESC, 1 is KEY_1, etc.
  */
 
+/*
 #define KB_INPUT_KEY_SEQ                                                                          \
     (ESC)(1)(2)(3)(4)(5)(6)(7)(8)(9)(0)(MINUS)(EQUAL)(BACKSPACE)(TAB)(Q)(W)(E)(R)(T)(Y)(U)(I)(O)( \
         P)(LEFTBRACE)(RIGHTBRACE)(ENTER)(LEFTCTRL)(RIGHTCTRL)(A)(S)(D)(F)(G)(H)(J)(K)(L)(         \
@@ -68,11 +82,56 @@ namespace G13 {
         F6)(F7)(F8)(F9)(F10)(F11)(F12)(NUMLOCK)(SCROLLLOCK)(KP7)(KP8)(KP9)(KPMINUS)(KP4)(KP5)(    \
         KP6)(KPPLUS)(KP1)(KP2)(KP3)(KP0)(KPDOT)(LEFT)(RIGHT)(UP)(DOWN)(PAGEUP)(PAGEDOWN)(HOME)(   \
         END)(INSERT)(DELETE)
+*/
 
 // *************************************************************************
 
+// Decided against using an enum too, I see no point
+//enum {
+//    /* byte 3 */
+//     G1, G2, G3, G4, G5, G6, G7, G8,
+//    /* byte 4 */
+//     G9,G10,G11,G12,G13,G14,G15,G16,
+//    /* byte 5 */
+//    G17,G18,G19,G20,G21,G22,UNDEF1,LIGHT_STATE,
+//    /* byte 6 */                                                \
+//    BD,L1,L2,L3,L4,M1,M2,M3,
+//    /* byte 7 */
+//    MR,LEFT,DOWN,TOP,UNDEF3,LIGHT,LIGHT2,MISC_TOGGLE,
+//} G13_KEYS;
+
+// G13_KEY_SEQ
+const std::set<std::string> G13_KEY_STRINGS = {
+    /* byte 3 */
+     "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8",
+    /* byte 4 */
+     "G9","G10","G11","G12","G13","G14","G15","G16",
+    /* byte 5 */
+    "G17","G18","G19","G20","G21","G22","UNDEF1","LIGHT_STATE",
+    /* byte 6 */
+    "BD","L1","L2","L3","L4","M1","M2","M3",
+    /* byte 7 */
+    "MR","LEFT","DOWN","TOP","UNDEF3","LIGHT","LIGHT2","MISC_TOGGLE",
+};
+
+// G13_NONPARSED_KEY_SEQ
+const std::array G13_NONPARSED_KEYS = { "UNDEF1", "LIGHT_STATE", "UNDEF3", "LIGHT", "LIGHT2", "UNDEF3", "MISC_TOGGLE" };
+
+// KB_INPUT_KEY_SEQ
+const std::vector<std::string> G13_SYMBOLS = {
+    "ESC","1","2","3","4","5","6","7","8","9","0","MINUS","EQUAL","BACKSPACE","TAB","Q","W","E","R","T","Y","U","I","O",
+    "P","LEFTBRACE","RIGHTBRACE","ENTER","LEFTCTRL","RIGHTCTRL","A","S","D","F","G","H","J","K","L",
+    "SEMICOLON","APOSTROPHE","GRAVE","LEFTSHIFT","BACKSLASH","Z","X","C","V","B","N","M","COMMA","DOT",
+    "SLASH","RIGHTSHIFT","KPASTERISK","LEFTALT","RIGHTALT","SPACE","CAPSLOCK","F1","F2","F3","F4","F5",
+    "F6","F7","F8","F9","F10","F11","F12","NUMLOCK","SCROLLLOCK","KP7","KP8","KP9","KPMINUS","KP4","KP5",
+    "KP6","KPPLUS","KP1","KP2","KP3","KP0","KPDOT","LEFT","RIGHT","UP","DOWN","PAGEUP","PAGEDOWN","HOME",
+    "END","INSERT","DELETE"
+};
+
+
 void G13_Profile::_init_keys() {
     int key_index = 0;
+/*
 // TODO: de-boost
     // create a G13_Key entry for every key in G13_KEY_SEQ
     //         G13_Key key(*this, BOOST_PP_STRINGIZE(elem), key_index++);
@@ -83,10 +142,14 @@ void G13_Profile::_init_keys() {
     }
 
     BOOST_PP_SEQ_FOR_EACH(INIT_KEY, _, G13_KEY_SEQ)
-
+*/
+    // TODO: use move semantics
+    for (auto &symbol : G13_KEY_STRINGS) {
+        _keys.emplace_back(G13_Key(*this, symbol, key_index++));
+    }
     assert(_keys.size() == G13_NUM_KEYS);
 
-    // now disable testing for keys in G13_NONPARSED_KEY_SEQ
+/*    // now disable testing for keys in G13_NONPARSED_KEY_SEQ
 #define MARK_NON_PARSED_KEY(r, data, elem)                 \
     {                                                      \
         G13_Key* key = find_key(BOOST_PP_STRINGIZE(elem)); \
@@ -94,7 +157,12 @@ void G13_Profile::_init_keys() {
         key->_should_parse = false;                        \
     }
 
-    BOOST_PP_SEQ_FOR_EACH(MARK_NON_PARSED_KEY, _, G13_NONPARSED_KEY_SEQ)
+    BOOST_PP_SEQ_FOR_EACH(MARK_NON_PARSED_KEY, _, G13_NONPARSED_KEY_SEQ)*/
+
+    for (auto &symbol : G13_NONPARSED_KEYS) {
+        G13_Key* key = find_key(symbol);
+        key->_should_parse = false;
+    }
 }
 
 // *************************************************************************
@@ -152,7 +220,7 @@ void G13_Manager::init_keynames() {
 
 // TODO: de-boost
 
-// setup maps to let us convert between strings and G13 key names
+/*// setup maps to let us convert between strings and G13 key names
 #define ADD_G13_KEY_MAPPING(r, data, elem)           \
     {                                                \
         std::string name = BOOST_PP_STRINGIZE(elem); \
@@ -161,8 +229,13 @@ void G13_Manager::init_keynames() {
         key_index++;                                 \
     }
 
-    BOOST_PP_SEQ_FOR_EACH(ADD_G13_KEY_MAPPING, _, G13_KEY_SEQ)
+    BOOST_PP_SEQ_FOR_EACH(ADD_G13_KEY_MAPPING, _, G13_KEY_SEQ)*/
 
+    for (auto &name : G13_KEY_STRINGS) {
+        g13_key_to_name[key_index] = name;
+        g13_name_to_key[name] = key_index++;
+    }
+/*
 // setup maps to let us convert between strings and linux key names
 #define ADD_KB_KEY_MAPPING(r, data, elem)            \
     {                                                \
@@ -173,6 +246,17 @@ void G13_Manager::init_keynames() {
     }
 
     BOOST_PP_SEQ_FOR_EACH(ADD_KB_KEY_MAPPING, _, KB_INPUT_KEY_SEQ)
+*/
+    for (auto &symbol : G13_SYMBOLS) {
+        auto keyname = std::string("KEY_" + symbol);
+        int code = libevdev_event_code_from_name(EV_KEY, keyname.c_str());
+        if(code < 0) {
+            G13_ERR("No input event code found for " << keyname);
+        }
+        input_key_to_name[code] = symbol;
+        input_name_to_key[symbol] = code;
+    }
+
 }
 
 LINUX_KEY_VALUE
