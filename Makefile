@@ -9,7 +9,6 @@ g13.o: g13.h helper.hpp g13.cc
 g13_main.o: g13.h helper.hpp g13_main.cc
 	g++ $(FLAGS) -c g13_main.cc
 
-
 g13_log.o: g13.h helper.hpp g13_log.cc
 	g++ $(FLAGS) -c g13_log.cc
 

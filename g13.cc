@@ -1,10 +1,9 @@
 /* boost free */
 
-#include <fstream>
 #include "g13.h"
-#include "logo.h"
+#include <fstream>
 #include "helper.hpp"
-
+#include "logo.h"
 
 // using namespace std;
 
@@ -56,7 +55,9 @@ void G13_Device::set_key_color(int red, int green, int blue) {
 
 // *************************************************************************
 
-void G13_Manager::discover_g13s(libusb_device** devs, ssize_t count, std::vector<G13_Device*>& g13s) {
+void G13_Manager::discover_g13s(libusb_device** devs,
+                                ssize_t count,
+                                std::vector<G13_Device*>& g13s) {
     for (int i = 0; i < count; i++) {
         libusb_device_descriptor desc;
         int r = libusb_get_device_descriptor(devs[i], &desc);
@@ -175,11 +176,13 @@ void G13_Device::register_context(libusb_context* _ctx) {
 
     _input_pipe_name = _manager.make_pipe_name(this, true);
     _input_pipe_fid = g13_create_fifo(_input_pipe_name.c_str());
+    if (_input_pipe_fid == -1) {
+        G13_ERR("failed opening input pipe " << _input_pipe_name);
+    }
     _output_pipe_name = _manager.make_pipe_name(this, false);
     _output_pipe_fid = g13_create_fifo(_output_pipe_name.c_str());
-
-    if (_input_pipe_fid == -1) {
-        G13_ERR("failed opening pipe");
+    if (_output_pipe_fid == -1) {
+        G13_ERR("failed opening output pipe " << _output_pipe_name);
     }
 }
 
@@ -292,10 +295,10 @@ void G13_Device::read_commands() {
             std::vector<std::string> lines;
             // boost::split(lines, buffer, boost::is_any_of("\n\r"));
 
-            Helper::split(lines, buffer, "\n\r", Helper::split::no_empties );
+            Helper::split(lines, buffer, "\n\r", Helper::split::no_empties);
 
             // BOOST_FOREACH (std::string const& cmd, lines) {
-            for (auto &cmd : lines) {
+            for (auto& cmd : lines) {
                 std::vector<std::string> command_comment;
                 // boost::split(command_comment, cmd, boost::is_any_of("#"));
                 Helper::split(command_comment, cmd, "#");
@@ -360,7 +363,7 @@ G13_Action_Keys::G13_Action_Keys(G13_Device& keypad, const std::string& keys_str
     boost::split(keys, keys_string, boost::is_any_of("+"));
 
     // BOOST_FOREACH (std::string const& key, keys) {
-    for (auto &key : keys) {
+    for (auto& key : keys) {
         auto kval = manager().find_input_key_value(key);
         if (kval == BAD_KEY_VALUE) {
             throw G13_CommandException("create action unknown key : " + key);

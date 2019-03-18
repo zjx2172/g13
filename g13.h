@@ -152,7 +152,7 @@ class G13_Action_Command : public G13_Action {
     std::string _cmd;
 };
 
-typedef boost::shared_ptr<G13_Action> G13_ActionPtr;
+typedef std::shared_ptr<G13_Action> G13_ActionPtr;
 
 // *************************************************************************
 template <class PARENT_T>
@@ -249,7 +249,7 @@ class G13_Profile {
     void _init_keys();
 };
 
-typedef boost::shared_ptr<G13_Profile> ProfilePtr;
+typedef std::shared_ptr<G13_Profile> ProfilePtr;
 
 class G13_FontChar {
    public:
@@ -289,7 +289,7 @@ class G13_Font {
     // unsigned char font_basic[256][8];
     // unsigned char font_inverted[256][8];
 };
-typedef boost::shared_ptr<G13_Font> FontPtr;
+typedef std::shared_ptr<G13_Font> FontPtr;
 
 class G13_LCD {
    public:
