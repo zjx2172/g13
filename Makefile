@@ -1,7 +1,7 @@
 all: g13d pbm2lpbm
 
 FLAGS=$(CXXFLAGS) -std=c++17
-LIBS=-lusb-1.0 -lboost_program_options -llog4cpp -lboost_thread -lboost_system -lpthread
+LIBS=-lusb-1.0 -llog4cpp -lboost_thread -lboost_system -lpthread
 
 g13.o: g13.h helper.hpp g13.cc
 	g++ $(FLAGS) -c g13.cc
