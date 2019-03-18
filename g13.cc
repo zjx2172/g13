@@ -3,6 +3,7 @@
 #include "g13.h"
 #include <fstream>
 #include "helper.hpp"
+#include "libusb-1.0/libusb.h"
 #include "logo.h"
 
 // using namespace std;
@@ -207,18 +208,24 @@ void G13_Manager::cleanup() {
 // *************************************************************************
 
 static std::string describe_libusb_error_code(int code) {
-#define TEST_libusb_error(r, data, elem) \
-    case BOOST_PP_CAT(LIBUSB_, elem):    \
-        return BOOST_PP_STRINGIZE(elem);
+    /*
+    #define TEST_libusb_error(r, data, elem) \
+        case BOOST_PP_CAT(LIBUSB_, elem):    \
+            return BOOST_PP_STRINGIZE(elem);
 
-    switch (code) {
-        BOOST_PP_SEQ_FOR_EACH(
-            TEST_libusb_error, _,
-            (SUCCESS)(ERROR_IO)(ERROR_INVALID_PARAM)(ERROR_ACCESS)(ERROR_NO_DEVICE)(
-                ERROR_NOT_FOUND)(ERROR_BUSY)(ERROR_TIMEOUT)(ERROR_OVERFLOW)(ERROR_PIPE)(
-                ERROR_INTERRUPTED)(ERROR_NO_MEM)(ERROR_NOT_SUPPORTED)(ERROR_OTHER))
-    }
-    return "unknown error";
+        switch (code) {
+            BOOST_PP_SEQ_FOR_EACH(
+                TEST_libusb_error, _,
+                (SUCCESS)(ERROR_IO)(ERROR_INVALID_PARAM)(ERROR_ACCESS)(ERROR_NO_DEVICE)(
+                    ERROR_NOT_FOUND)(ERROR_BUSY)(ERROR_TIMEOUT)(ERROR_OVERFLOW)(ERROR_PIPE)(
+                    ERROR_INTERRUPTED)(ERROR_NO_MEM)(ERROR_NOT_SUPPORTED)(ERROR_OTHER))
+        }
+    */
+    // return "unknown error";
+
+    auto description = std::string(libusb_error_name(code)) + " " +
+                       std::string(libusb_strerror((libusb_error)code));
+    return std::move(description);
 }
 
 // *************************************************************************
@@ -656,22 +663,21 @@ std::string G13_Manager::make_pipe_name(G13_Device* d, bool is_input) {
             if (d->id_within_manager() == 0) {
                 return config_base;
             } else {
-                return config_base + "-" + boost::lexical_cast<std::string>(d->id_within_manager());
+                return config_base + "-" + std::to_string(d->id_within_manager());
             }
         }
-        return CONTROL_DIR + "g13-" + boost::lexical_cast<std::string>(d->id_within_manager());
+        return CONTROL_DIR + "g13-" + std::to_string(d->id_within_manager());
     } else {
         std::string config_base = string_config_value("pipe_out");
         if (config_base.size()) {
             if (d->id_within_manager() == 0) {
                 return config_base;
             } else {
-                return config_base + "-" + boost::lexical_cast<std::string>(d->id_within_manager());
+                return config_base + "-" + std::to_string(d->id_within_manager());
             }
         }
 
-        return CONTROL_DIR + "g13-" + boost::lexical_cast<std::string>(d->id_within_manager()) +
-               "_out";
+        return CONTROL_DIR + "g13-" + std::to_string(d->id_within_manager()) + "_out";
     }
 }
 

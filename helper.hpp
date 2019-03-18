@@ -34,8 +34,8 @@
 #define __HELPER_HPP__
 
 #include <boost/algorithm/string.hpp>
-// #include <boost/foreach.hpp>
-#include <boost/lexical_cast.hpp>
+//#include <boost/foreach.hpp>
+//#include <boost/lexical_cast.hpp>
 //#include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/seq.hpp>
 //#include <boost/shared_ptr.hpp>
