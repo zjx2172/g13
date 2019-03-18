@@ -372,7 +372,7 @@ G13_Font::G13_Font(const std::string& name, unsigned int width) : _name(name), _
 void G13_FontChar::set_character(unsigned char* data, int width, unsigned flags) {
     unsigned char* dest = bits_regular;
     memset(dest, 0, CHAR_BUF_SIZE);
-    if (flags && FF_ROTATE) {
+    if (flags & FF_ROTATE) {
         for (int x = 0; x < width; x++) {
             unsigned char x_mask = (unsigned char) 1 << x;
             for (int y = 0; y < 8; y++) {
