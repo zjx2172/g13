@@ -42,7 +42,7 @@ namespace G13 {
  * format.  Do NOT remove or insert items in this list.
  */
 /*
-
+// clang-format off
 #define G13_KEY_SEQ                                                                          \
     */
 /* byte 3 *//*
@@ -84,6 +84,37 @@ namespace G13 {
         END)(INSERT)(DELETE)
 */
 
+// TODO: theese are just hanging in the global place here
+
+// G13_KEY_SEQ
+const std::set<std::string> G13_KEY_STRINGS = {
+    /* byte 3 */
+    "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8",
+    /* byte 4 */
+    "G9","G10","G11","G12","G13","G14","G15","G16",
+    /* byte 5 */
+    "G17","G18","G19","G20","G21","G22","UNDEF1","LIGHT_STATE",
+    /* byte 6 */
+    "BD","L1","L2","L3","L4","M1","M2","M3",
+    /* byte 7 */
+    "MR","LEFT","DOWN","TOP","UNDEF3","LIGHT","LIGHT2","MISC_TOGGLE",
+};
+
+// G13_NONPARSED_KEY_SEQ
+const std::vector<std::string> G13_NONPARSED_KEYS = { "UNDEF1", "LIGHT_STATE", "UNDEF3", "LIGHT", "LIGHT2", "UNDEF3", "MISC_TOGGLE" };
+
+// KB_INPUT_KEY_SEQ
+/* clang-format ignore start */
+const std::vector<std::string> G13_SYMBOLS = {
+    "ESC","1","2","3","4","5","6","7","8","9","0","MINUS","EQUAL","BACKSPACE","TAB","Q","W","E","R","T","Y","U","I","O",
+    "P","LEFTBRACE","RIGHTBRACE","ENTER","LEFTCTRL","RIGHTCTRL","A","S","D","F","G","H","J","K","L",
+    "SEMICOLON","APOSTROPHE","GRAVE","LEFTSHIFT","BACKSLASH","Z","X","C","V","B","N","M","COMMA","DOT",
+    "SLASH","RIGHTSHIFT","KPASTERISK","LEFTALT","RIGHTALT","SPACE","CAPSLOCK","F1","F2","F3","F4","F5",
+    "F6","F7","F8","F9","F10","F11","F12","NUMLOCK","SCROLLLOCK","KP7","KP8","KP9","KPMINUS","KP4","KP5",
+    "KP6","KPPLUS","KP1","KP2","KP3","KP0","KPDOT","LEFT","RIGHT","UP","DOWN","PAGEUP","PAGEDOWN","HOME",
+    "END","INSERT","DELETE"
+};
+
 // *************************************************************************
 
 // Decided against using an enum too, I see no point
@@ -99,38 +130,11 @@ namespace G13 {
 //    /* byte 7 */
 //    MR,LEFT,DOWN,TOP,UNDEF3,LIGHT,LIGHT2,MISC_TOGGLE,
 //} G13_KEYS;
-
-// G13_KEY_SEQ
-const std::set<std::string> G13_KEY_STRINGS = {
-    /* byte 3 */
-     "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8",
-    /* byte 4 */
-     "G9","G10","G11","G12","G13","G14","G15","G16",
-    /* byte 5 */
-    "G17","G18","G19","G20","G21","G22","UNDEF1","LIGHT_STATE",
-    /* byte 6 */
-    "BD","L1","L2","L3","L4","M1","M2","M3",
-    /* byte 7 */
-    "MR","LEFT","DOWN","TOP","UNDEF3","LIGHT","LIGHT2","MISC_TOGGLE",
-};
-
-// G13_NONPARSED_KEY_SEQ
-const std::array G13_NONPARSED_KEYS = { "UNDEF1", "LIGHT_STATE", "UNDEF3", "LIGHT", "LIGHT2", "UNDEF3", "MISC_TOGGLE" };
-
-// KB_INPUT_KEY_SEQ
-const std::vector<std::string> G13_SYMBOLS = {
-    "ESC","1","2","3","4","5","6","7","8","9","0","MINUS","EQUAL","BACKSPACE","TAB","Q","W","E","R","T","Y","U","I","O",
-    "P","LEFTBRACE","RIGHTBRACE","ENTER","LEFTCTRL","RIGHTCTRL","A","S","D","F","G","H","J","K","L",
-    "SEMICOLON","APOSTROPHE","GRAVE","LEFTSHIFT","BACKSLASH","Z","X","C","V","B","N","M","COMMA","DOT",
-    "SLASH","RIGHTSHIFT","KPASTERISK","LEFTALT","RIGHTALT","SPACE","CAPSLOCK","F1","F2","F3","F4","F5",
-    "F6","F7","F8","F9","F10","F11","F12","NUMLOCK","SCROLLLOCK","KP7","KP8","KP9","KPMINUS","KP4","KP5",
-    "KP6","KPPLUS","KP1","KP2","KP3","KP0","KPDOT","LEFT","RIGHT","UP","DOWN","PAGEUP","PAGEDOWN","HOME",
-    "END","INSERT","DELETE"
-};
+// clang-format on
 
 
 void G13_Profile::_init_keys() {
-    int key_index = 0;
+
 /*
 // TODO: de-boost
     // create a G13_Key entry for every key in G13_KEY_SEQ
@@ -143,9 +147,12 @@ void G13_Profile::_init_keys() {
 
     BOOST_PP_SEQ_FOR_EACH(INIT_KEY, _, G13_KEY_SEQ)
 */
-    // TODO: use move semantics
+    int key_index = 0;
     for (auto &symbol : G13_KEY_STRINGS) {
-        _keys.emplace_back(G13_Key(*this, symbol, key_index++));
+        _keys.emplace_back(G13_Key(*this, symbol, key_index));
+        key_index++;
+        // This does not work:
+        // _keys.emplace_back(G13_Key(*this, symbol, libevdev_event_code_from_name(EV_KEY, symbol.c_str())));
     }
     assert(_keys.size() == G13_NUM_KEYS);
 
@@ -249,6 +256,8 @@ void G13_Manager::init_keynames() {
 */
     for (auto &symbol : G13_SYMBOLS) {
         auto keyname = std::string("KEY_" + symbol);
+
+        // TODO: THIS DOES NOT MAP RIGHT!!!
         int code = libevdev_event_code_from_name(EV_KEY, keyname.c_str());
         if(code < 0) {
             G13_ERR("No input event code found for " << keyname);

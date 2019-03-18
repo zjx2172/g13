@@ -223,8 +223,8 @@ static std::string describe_libusb_error_code(int code) {
     */
     // return "unknown error";
 
-    auto description = std::string(libusb_error_name(code)) + " " +
-                       std::string(libusb_strerror((libusb_error)code));
+    auto description =
+        std::string(libusb_error_name(code)) + " " + std::string(libusb_strerror((libusb_error) code));
     return std::move(description);
 }
 

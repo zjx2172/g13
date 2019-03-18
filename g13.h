@@ -5,8 +5,6 @@
 #include <log4cpp/Category.hh>
 #include <log4cpp/Priority.hh>
 
-// #include <boost/log/trivial.hpp>
-
 #include <libusb-1.0/libusb.h>
 
 #include <fcntl.h>
@@ -241,7 +239,7 @@ class G13_Profile {
 
     const G13_Manager& manager() const;
 
-   protected:
+protected:
     G13_Device& _keypad;
     std::vector<G13_Key> _keys;
     std::string _name;
