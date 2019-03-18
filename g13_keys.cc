@@ -254,6 +254,7 @@ void G13_Manager::init_keynames() {
 
     BOOST_PP_SEQ_FOR_EACH(ADD_KB_KEY_MAPPING, _, KB_INPUT_KEY_SEQ)
 */
+
     for (auto &symbol : G13_SYMBOLS) {
         auto keyname = std::string("KEY_" + symbol);
 
@@ -262,6 +263,10 @@ void G13_Manager::init_keynames() {
         if(code < 0) {
             G13_ERR("No input event code found for " << keyname);
         }
+
+        assert(keyname.compare(libevdev_event_code_get_name(EV_KEY,code)) == 0);
+        // linux/input-event-codes.h
+
         input_key_to_name[code] = symbol;
         input_name_to_key[symbol] = code;
     }
