@@ -1,10 +1,12 @@
 /* boost free */
 
-#include "g13.h"
 #include <fstream>
+#include "g13.h"
 #include "logo.h"
+#include "helper.hpp"
 
-using namespace std;
+
+// using namespace std;
 
 // *************************************************************************
 
@@ -54,7 +56,7 @@ void G13_Device::set_key_color(int red, int green, int blue) {
 
 // *************************************************************************
 
-void G13_Manager::discover_g13s(libusb_device** devs, ssize_t count, vector<G13_Device*>& g13s) {
+void G13_Manager::discover_g13s(libusb_device** devs, ssize_t count, std::vector<G13_Device*>& g13s) {
     for (int i = 0; i < count; i++) {
         libusb_device_descriptor desc;
         int r = libusb_get_device_descriptor(devs[i], &desc);
@@ -228,8 +230,8 @@ int G13_Device::read_keys() {
                                           G13_REPORT_SIZE, &size, 100);
 
     if (error && error != LIBUSB_ERROR_TIMEOUT) {
-        G13_ERR("Error while reading keys: " << error << " ("
-                                                    << describe_libusb_error_code(error) << ")");
+        G13_ERR("Error while reading keys: " << error << " (" << describe_libusb_error_code(error)
+                                             << ")");
         //    G13_LOG( error, "Stopping daemon" );
         //    return -1;
     }
@@ -288,11 +290,15 @@ void G13_Device::read_commands() {
         } else {
             std::string buffer = reinterpret_cast<const char*>(buf);
             std::vector<std::string> lines;
-            boost::split(lines, buffer, boost::is_any_of("\n\r"));
+            // boost::split(lines, buffer, boost::is_any_of("\n\r"));
 
-            BOOST_FOREACH (std::string const& cmd, lines) {
+            Helper::split(lines, buffer, "\n\r", Helper::split::no_empties );
+
+            // BOOST_FOREACH (std::string const& cmd, lines) {
+            for (auto &cmd : lines) {
                 std::vector<std::string> command_comment;
-                boost::split(command_comment, cmd, boost::is_any_of("#"));
+                // boost::split(command_comment, cmd, boost::is_any_of("#"));
+                Helper::split(command_comment, cmd, "#");
 
                 if (command_comment.size() > 0 && command_comment[0] != std::string("")) {
                     G13_OUT("command: " << command_comment[0]);
@@ -353,7 +359,8 @@ G13_Action_Keys::G13_Action_Keys(G13_Device& keypad, const std::string& keys_str
     std::vector<std::string> keys;
     boost::split(keys, keys_string, boost::is_any_of("+"));
 
-    BOOST_FOREACH (std::string const& key, keys) {
+    // BOOST_FOREACH (std::string const& key, keys) {
+    for (auto &key : keys) {
         auto kval = manager().find_input_key_value(key);
         if (kval == BAD_KEY_VALUE) {
             throw G13_CommandException("create action unknown key : " + key);
@@ -435,10 +442,10 @@ G13_ActionPtr G13_Device::make_action(const std::string& action) {
 // *************************************************************************
 
 void G13_Device::dump(std::ostream& o, int detail) {
-    o << "G13 id=" << id_within_manager() << endl;
-    o << "   input_pipe_name=" << repr(_input_pipe_name) << endl;
-    o << "   output_pipe_name=" << repr(_output_pipe_name) << endl;
-    o << "   current_profile=" << _current_profile->name() << endl;
+    o << "G13 id=" << id_within_manager() << std::endl;
+    o << "   input_pipe_name=" << repr(_input_pipe_name) << std::endl;
+    o << "   output_pipe_name=" << repr(_output_pipe_name) << std::endl;
+    o << "   current_profile=" << _current_profile->name() << std::endl;
     o << "   current_font=" << _current_font->name() << std::endl;
 
     if (detail > 0) {
@@ -456,10 +463,10 @@ void G13_Device::dump(std::ostream& o, int detail) {
 
 // *************************************************************************
 
-#define RETURN_FAIL(message)     \
-    {                            \
-        G13_ERR(message); \
-        return;                  \
+#define RETURN_FAIL(message) \
+    {                        \
+        G13_ERR(message);    \
+        return;              \
     }
 
 struct command_adder {

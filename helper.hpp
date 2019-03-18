@@ -1,3 +1,5 @@
+#include <utility>
+
 /*
  * helper.hpp
  *
@@ -32,12 +34,13 @@
 #define __HELPER_HPP__
 
 #include <boost/algorithm/string.hpp>
-#include <boost/foreach.hpp>
+// #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/seq.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <cstddef>
 #include <iomanip>
 #include <iostream>
 
@@ -52,7 +55,7 @@
 namespace Helper {
 
 struct string_repr_out {
-    string_repr_out(const std::string& str) : s(str) {}
+    explicit string_repr_out(std::string str) : s(std::move(str)) {}
     void write_on(std::ostream&) const;
 
     std::string s;
@@ -79,7 +82,7 @@ inline string_repr_out repr(const std::string& s) {
 
 class NotFoundException : public std::exception {
    public:
-    const char* what() throw();
+    const char* what() noexcept;
 };
 
 template <class KEY_T, class VAL_T>
@@ -152,13 +155,13 @@ std::ostream& operator<<(std::ostream& o, const Bounds<T>& b) {
 
 typedef const char* CCP;
 inline const char* advance_ws(CCP& source, std::string& dest) {
-    const char* space = source ? strchr(source, ' ') : 0;
+    const char* space = source ? strchr(source, ' ') : nullptr;
     if (space) {
         dest = std::string(source, space - source);
         source = space + 1;
     } else {
         dest = source;
-        source = 0;
+        source = nullptr;
     }
     return source;
 };
@@ -167,7 +170,7 @@ inline const char* advance_ws(CCP& source, std::string& dest) {
 
 template <class MAP_T>
 struct _map_keys_out {
-    _map_keys_out(const MAP_T& c, const std::string& s) : container(c), sep(s) {}
+    _map_keys_out(const MAP_T& c, std::string s) : container(c), sep(std::move(s)) {}
     const MAP_T& container;
     std::string sep;
 };
@@ -190,6 +193,37 @@ template <class MAP_T>
 _map_keys_out<MAP_T> map_keys_out(const MAP_T& c, const std::string& sep = " ") {
     return _map_keys_out<MAP_T>(c, sep);
 };
+
+// *************************************************************************
+
+// This is from http://www.cplusplus.com/faq/sequences/strings/split
+// TODO: decltype
+
+struct split {
+    enum empties_t { empties_ok, no_empties };
+};
+
+template <typename Container>
+Container& split(Container& result,
+                 const typename Container::value_type& s,
+                 const typename Container::value_type& delimiters,
+                 split::empties_t empties = split::empties_ok) {
+    result.clear();
+    size_t current;
+    auto next = (size_t) -1;
+    do {
+        if (empties == split::no_empties) {
+            next = s.find_first_not_of(delimiters, next + 1);
+            if (next == Container::value_type::npos)
+                break;
+            next -= 1;
+        }
+        current = next + 1;
+        next = s.find_first_of(delimiters, current);
+        result.push_back(s.substr(current, next - current));
+    } while (next != Container::value_type::npos);
+    return result;
+}
 
 // *************************************************************************
 
