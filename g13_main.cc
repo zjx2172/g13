@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 
     const char* const short_opts = "l:c:i:o:d:h";
     const option long_opts[] = {{"logo", required_argument, nullptr, 'l'},
-                                {"config", no_argument, nullptr, 'c'},
+                                {"config", required_argument, nullptr, 'c'},
                                 {"pipe_in", required_argument, nullptr, 'i'},
                                 {"pipe_out", required_argument, nullptr, 'o'},
                                 {"log_level", required_argument, nullptr, 'd'},
