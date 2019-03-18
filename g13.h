@@ -27,6 +27,7 @@ namespace G13 {
 
 #define G13_LOG(message) log4cpp::Category::getRoot() << message
 #define G13_ERR(message) log4cpp::Category::getRoot() << log4cpp::Priority::ERROR << message
+#define G13_DBG(message) log4cpp::Category::getRoot() << log4cpp::Priority::DEBUG << message
 #define G13_OUT(message) log4cpp::Category::getRoot() << log4cpp::Priority::INFO << message
 
 
@@ -488,6 +489,7 @@ class G13_Manager {
 
     std::string make_pipe_name(G13_Device* d, bool is_input);
 
+    void start_logging();
     void set_log_level(log4cpp::Priority::PriorityLevel lvl);
     void set_log_level(const std::string&);
 

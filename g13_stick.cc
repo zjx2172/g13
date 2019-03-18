@@ -145,8 +145,7 @@ void G13_Stick::parse_joystick(unsigned char* buf) {
         dy = 1.0 - dy;
     }
 
-    G13_LOG(log4cpp::Priority::DEBUG <<
-            "x=" << _current_pos.x << " y=" << _current_pos.y << " dx=" << dx << " dy=" << dy);
+    G13_DBG("x=" << _current_pos.x << " y=" << _current_pos.y << " dx=" << dx << " dy=" << dy);
     G13_ZoneCoord jpos(dx, dy);
     if (_stick_mode == STICK_ABSOLUTE) {
         _keypad.send_event(EV_ABS, ABS_X, _current_pos.x);

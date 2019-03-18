@@ -635,7 +635,7 @@ std::string G13_Manager::string_config_value(const std::string& name) const {
     }
 }
 void G13_Manager::set_string_config_value(const std::string& name, const std::string& value) {
-    G13_OUT("set_string_config_value " << name << " = " << repr(value));
+    G13_DBG("set_string_config_value " << name << " = " << repr(value));
     _string_config_values[name] = value;
 }
 
