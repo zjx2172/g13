@@ -15,6 +15,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fstream>
+#include <memory>
+#include <functional>
 
 // *************************************************************************
 
@@ -343,7 +345,7 @@ class G13_StickZone : public G13_Actionable<G13_Stick> {
     G13_ZoneBounds _bounds;
 };
 
-typedef boost::shared_ptr<G13_StickZone> G13_StickZonePtr;
+typedef std::shared_ptr<G13_StickZone> G13_StickZonePtr;
 
 // *************************************************************************
 
@@ -426,7 +428,8 @@ class G13_Device {
 
     int id_within_manager() const { return _id_within_manager; }
 
-    typedef boost::function<void(const char*)> COMMAND_FUNCTION;
+    // typedef boost::function<void(const char*)> COMMAND_FUNCTION;
+    typedef std::function<void(const char*)> COMMAND_FUNCTION;
     typedef std::map<std::string, COMMAND_FUNCTION> CommandFunctionTable;
 
    protected:

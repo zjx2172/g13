@@ -33,12 +33,13 @@
 #ifndef __HELPER_HPP__
 #define __HELPER_HPP__
 
-#include <boost/algorithm/string.hpp>
+
 //#include <boost/foreach.hpp>
 //#include <boost/lexical_cast.hpp>
 //#include <boost/preprocessor/cat.hpp>
-#include <boost/preprocessor/seq.hpp>
 //#include <boost/shared_ptr.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/preprocessor/seq.hpp>
 
 #include <cstddef>
 #include <iomanip>
@@ -49,6 +50,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <cstring>
 
 // *************************************************************************
 
@@ -203,27 +205,44 @@ struct split {
     enum empties_t { empties_ok, no_empties };
 };
 
+/*
 template <typename Container>
-Container& split(Container& result,
-                 const typename Container::value_type& s,
+auto split(Container& target,
+                 const typename Container::value_type& srcStr,
                  const typename Container::value_type& delimiters,
                  split::empties_t empties = split::empties_ok) {
-    result.clear();
+
+    Container result = split(srcStr,delimiters,empties);
+    std::swap(target,result);
+    return target;
+}
+*/
+//template <typename T>
+//typename std::add_rvalue_reference<T>::type declval(); // no definition required
+
+// decltype(*std::declval<T>()) operator*() { /* ... */ }
+template <typename Container>
+auto split(const typename Container::value_type& srcStr,
+      const typename Container::value_type& delimiters,
+      split::empties_t empties = split::empties_ok) {
+
+    Container result;
     size_t current;
     auto next = (size_t) -1;
     do {
         if (empties == split::no_empties) {
-            next = s.find_first_not_of(delimiters, next + 1);
+            next = srcStr.find_first_not_of(delimiters, next + 1);
             if (next == Container::value_type::npos)
                 break;
             next -= 1;
         }
         current = next + 1;
-        next = s.find_first_of(delimiters, current);
-        result.push_back(s.substr(current, next - current));
+        next = srcStr.find_first_of(delimiters, current);
+        result.push_back(srcStr.substr(current, next - current));
     } while (next != Container::value_type::npos);
-    return result;
+    return std::move(result);
 }
+
 
 // *************************************************************************
 

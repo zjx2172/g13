@@ -299,16 +299,15 @@ void G13_Device::read_commands() {
             lcd().image(buf, ret);
         } else {
             std::string buffer = reinterpret_cast<const char*>(buf);
-            std::vector<std::string> lines;
             // boost::split(lines, buffer, boost::is_any_of("\n\r"));
 
-            Helper::split(lines, buffer, "\n\r", Helper::split::no_empties);
+            auto lines = Helper::split<std::vector<std::string>>(buffer, "\n\r", Helper::split::no_empties);
 
             // BOOST_FOREACH (std::string const& cmd, lines) {
             for (auto& cmd : lines) {
-                std::vector<std::string> command_comment;
+                auto command_comment = Helper::split<std::vector<std::string>>(cmd, "#",  Helper::split::no_empties);
                 // boost::split(command_comment, cmd, boost::is_any_of("#"));
-                Helper::split(command_comment, cmd, "#");
+
 
                 if (command_comment.size() > 0 && command_comment[0] != std::string("")) {
                     G13_OUT("command: " << command_comment[0]);
@@ -366,8 +365,7 @@ G13_Action::~G13_Action() {}
 
 G13_Action_Keys::G13_Action_Keys(G13_Device& keypad, const std::string& keys_string)
     : G13_Action(keypad) {
-    std::vector<std::string> keys;
-    boost::split(keys, keys_string, boost::is_any_of("+"));
+    auto keys = Helper::split<std::vector<std::string>>(keys_string, "+");
 
     // BOOST_FOREACH (std::string const& key, keys) {
     for (auto& key : keys) {
