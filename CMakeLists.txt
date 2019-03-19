@@ -6,6 +6,9 @@ set(CMAKE_CXX_FLAGS "-std=c++17")
 
 include_directories(.)
 
+add_executable(pbm2lpbm
+        pbm2lpbm.cpp)
+
 add_executable(g13
         g13.cpp
         g13.hpp
@@ -20,20 +23,16 @@ add_executable(g13
         helper.hpp
         logo.hpp)
 
-set_source_files_properties(version PROPERTIES GENERATED true)
 add_custom_target(version
-        COMMAND sh GIT-VERSION-GEN
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-add_dependencies(g13 version)
-ADD_CUSTOM_COMMAND(
-        COMMENT "version files clean"
-        COMMAND rm
-        ARGS    -f GIT-VERSION-FILE GIT-VERSION.h
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        TARGET  g13
+        COMMAND ${CMAKE_SOURCE_DIR}/GIT-VERSION-GEN
+        DEPENDS GIT-VERSION-GEN
+        COMMENT "Checking version header ..."
 )
-add_executable(pbm2lpbm
-        pbm2lpbm.cpp)
+add_dependencies(g13 version)
+set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/GIT-VERSION.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/GIT-VERSION-FILE")
 
 add_executable(runtests
         g13.cpp
