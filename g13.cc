@@ -542,16 +542,26 @@ void G13_Device::_init_commands() {
 
     G13_DEVICE_COMMAND(stickmode) {
         std::string mode = remainder;
-#define STICKMODE_TEST(r, data, elem)                \
-    if (mode == BOOST_PP_STRINGIZE(elem)) {          \
-        _stick.set_mode(BOOST_PP_CAT(STICK_, elem)); \
-        return;                                      \
-    } else
-
-        BOOST_PP_SEQ_FOR_EACH(STICKMODE_TEST, _,
-                              (ABSOLUTE)(RELATIVE)(KEYS)(CALCENTER)(CALBOUNDS)(CALNORTH)) {
-            RETURN_FAIL("unknown stick mode : <" << mode << ">");
+//#define STICKMODE_TEST(r, data, elem)                \
+//    if (mode == std::string(elem)) {          \
+//        _stick.set_mode(std::string("STICK_", elem)); \
+//        return;                                      \
+//    } else
+        // TODO: this could be part of a G13::Constants class I think
+        const std::set<std::string> modes = { "ABSOLUTE","RELATIVE","KEYS","CALCENTER","CALBOUNDS","CALNORTH" };
+        int index = 0;
+        for (auto &test : modes) {
+            if (test.compare(mode) == 0) {
+                _stick.set_mode((G13::stick_mode_t) index);
+                return;
+            }
+            index++;
         }
+        RETURN_FAIL("unknown stick mode : <" << mode << ">");
+//        BOOST_PP_SEQ_FOR_EACH(STICKMODE_TEST, _,
+//                              (ABSOLUTE)(RELATIVE)(KEYS)(CALCENTER)(CALBOUNDS)(CALNORTH)) {
+//            RETURN_FAIL("unknown stick mode : <" << mode << ">");
+//        }
     }
 
     G13_DEVICE_COMMAND(stickzone) {
