@@ -4,8 +4,6 @@
 #include "g13.h"
 #include <libevdev-1.0/libevdev/libevdev.h>
 
-// using namespace std;
-
 /**************************************************************************************************/
 
 // #include <iostream>

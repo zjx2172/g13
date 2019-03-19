@@ -1,26 +1,5 @@
-#include <fstream>
 #include "g13.h"
-
-//#include <boost/log/attributes.hpp>
-//#include <boost/log/core/core.hpp>
-//#include <boost/log/expressions.hpp>
-//#include <boost/log/expressions/formatters/stream.hpp>
-//#include <boost/log/sources/severity_feature.hpp>
-//#include <boost/log/sources/severity_logger.hpp>
-//#include <boost/log/support/date_time.hpp>
-//#include <boost/log/trivial.hpp>
-//#include <boost/log/utility/setup.hpp>
-//#include <boost/log/utility/setup/console.hpp>
-
-#include <log4cpp/Category.hh>
-#include <log4cpp/Appender.hh>
-#include <log4cpp/FileAppender.hh>
 #include <log4cpp/OstreamAppender.hh>
-#include <log4cpp/BasicLayout.hh>
-#include <log4cpp/Layout.hh>
-#include <log4cpp/Priority.hh>
-
-using namespace std;
 
 namespace G13 {
 

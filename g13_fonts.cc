@@ -1,7 +1,5 @@
 #include "g13.h"
 
-// using namespace std;
-
 namespace G13 {
 
 // font data from https://github.com/dhepper/font8x8

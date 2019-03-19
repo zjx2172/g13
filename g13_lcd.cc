@@ -21,8 +21,6 @@
 #include "g13.h"
 #include "logo.h"
 
-// using namespace std;
-
 namespace G13 {
 
 void G13_Device::init_lcd() {

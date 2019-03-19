@@ -1,5 +1,3 @@
-#include <utility>
-
 /*
  * helper.hpp
  *
@@ -33,23 +31,8 @@
 #ifndef __HELPER_HPP__
 #define __HELPER_HPP__
 
-
-//#include <boost/foreach.hpp>
-//#include <boost/lexical_cast.hpp>
-//#include <boost/preprocessor/cat.hpp>
-//#include <boost/shared_ptr.hpp>
-//#include <boost/algorithm/string.hpp>
-//#include <boost/preprocessor/seq.hpp>
-
-#include <cstddef>
 #include <iomanip>
-#include <iostream>
-
-#include <exception>
-
 #include <map>
-#include <string>
-#include <vector>
 #include <cstring>
 
 // *************************************************************************

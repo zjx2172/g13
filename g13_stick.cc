@@ -1,9 +1,7 @@
-/* This file contains code for managing keys and profiles
- *
+/*
+ * This file contains code for managing keys and profiles
  */
 #include "g13.h"
-
-// using namespace std;
 
 namespace G13 {
 

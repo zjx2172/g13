@@ -2,21 +2,14 @@
 #define __G13_H__
 
 #include "helper.hpp"
-#include <log4cpp/Category.hh>
-#include <log4cpp/Priority.hh>
-
-#include <libusb-1.0/libusb.h>
-
-#include <fcntl.h>
 #include <linux/uinput.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <fstream>
 #include <memory>
 #include <functional>
+#include <log4cpp/Category.hh>
+#include <libusb-1.0/libusb.h>
 
 // *************************************************************************
 

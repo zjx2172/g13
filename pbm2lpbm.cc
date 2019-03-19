@@ -2,10 +2,8 @@
  *  pbm2lpbm.cpp
  */
 
-#include <cstdio>
 #include <cstring>
 #include <iostream>
-#include <string>
 
 // convert a .pbm raw file to our custom .lpbm format
 

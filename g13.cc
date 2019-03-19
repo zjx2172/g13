@@ -1,12 +1,6 @@
-/* boost free */
-
 #include "g13.h"
-#include <fstream>
 #include "helper.hpp"
-#include "libusb-1.0/libusb.h"
 #include "logo.h"
-
-// using namespace std;
 
 // *************************************************************************
 

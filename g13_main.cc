@@ -1,5 +1,5 @@
-#include <getopt.h>
 #include "g13.h"
+#include <getopt.h>
 
 using namespace G13;
 
