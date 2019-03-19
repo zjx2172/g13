@@ -1,6 +1,6 @@
-#include "g13.h"
+#include "g13.hpp"
 #include "helper.hpp"
-#include "logo.h"
+#include "logo.hpp"
 
 // *************************************************************************
 

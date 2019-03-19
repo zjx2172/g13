@@ -1,5 +1,5 @@
 #include <log4cpp/OstreamAppender.hh>
-#include "g13.h"
+#include "g13.hpp"
 
 namespace G13 {
 

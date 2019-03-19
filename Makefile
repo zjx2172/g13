@@ -29,7 +29,7 @@ helper.o: helper.hpp helper.cpp
 	
 	
 g13d: g13_main.o g13.o g13_log.o g13_fonts.o g13_lcd.o g13_stick.o g13_keys.o helper.o
-	g++ -o g13d -std=c++0x \
+	g++ -o g13d $(FLAGS) \
 		g13_main.o g13.o g13_log.o g13_fonts.o g13_lcd.o g13_stick.o g13_keys.o helper.o \
 	    $(LIBS)
 

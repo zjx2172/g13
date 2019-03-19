@@ -7,34 +7,34 @@ set(CMAKE_CXX_FLAGS "-std=c++17")
 include_directories(.)
 
 add_executable(g13
-        g13.cc
-        g13.h
-        g13_fonts.cc
-        g13_keys.cc
-        g13_lcd.cc
-        g13_log.cc
-        g13_main.cc
-        g13_stick.cc
+        g13.cpp
+        g13.hpp
+        g13_fonts.cpp
+        g13_keys.cpp
+        g13_lcd.cpp
+        g13_log.cp
+        g13_main.cpp
+        g13_stick.cpp
         g13_test.py
         helper.cpp
         helper.hpp
-        logo.h)
+        logo.hpp)
 
 add_executable(pbm2lpbm
-        pbm2lpbm.cc)
+        pbm2lpbm.cpp)
 
 add_executable(runtests
-        g13.cc
-        g13.h
-        g13_fonts.cc
-        g13_keys.cc
-        g13_lcd.cc
-        g13_log.cc
-        g13_stick.cc
+        g13.cpp
+        g13.hpp
+        g13_fonts.cpp
+        g13_keys.cpp
+        g13_lcd.cpp
+        g13_log.cp
+        g13_stick.cpp
         g13_test.py
         helper.cpp
         helper.hpp
-        logo.h
+        logo.hpp
         testKeys.cpp)
 
 target_link_libraries (g13 usb-1.0 log4cpp evdev)

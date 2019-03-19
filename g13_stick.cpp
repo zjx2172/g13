@@ -1,7 +1,7 @@
 /*
  * This file contains code for managing keys and profiles
  */
-#include "g13.h"
+#include "g13.hpp"
 
 namespace G13 {
 

@@ -1,4 +1,4 @@
-#include "g13.h"
+#include "g13.hpp"
 #include <getopt.h>
 
 using namespace G13;
