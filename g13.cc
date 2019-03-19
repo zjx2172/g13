@@ -479,6 +479,9 @@ void G13_Device::dump(std::ostream& o, int detail) {
 
 struct command_adder {
     command_adder(G13_Device::CommandFunctionTable& t, const char* name) : _t(t), _name(name) {}
+    command_adder(G13_Device::CommandFunctionTable& t, const char* name, G13_Device::COMMAND_FUNCTION f) : _t(t), _name(name) {
+        _t[_name] = f;
+    }
 
     G13_Device::CommandFunctionTable& _t;
     std::string _name;
@@ -495,19 +498,25 @@ struct command_adder {
 
 void G13_Device::_init_commands() {
     using Helper::advance_ws;
+    const char *remainder;
 
-    G13_DEVICE_COMMAND(out) { lcd().write_string(remainder); }
+    // G13_DEVICE_COMMAND(out) { lcd().write_string(remainder); }
+    command_adder add_out(_command_table, "out", [this](const char *remainder) {
+        lcd().write_string(remainder);
+    });
 
-    G13_DEVICE_COMMAND(pos) {
+    // G13_DEVICE_COMMAND(pos) {
+    command_adder add_pos(_command_table, "pos", [this](const char *remainder) {
         int row, col;
         if (sscanf(remainder, "%i %i", &row, &col) == 2) {
             lcd().write_pos(row, col);
         } else {
             RETURN_FAIL("bad pos : " << remainder);
         }
-    }
+    });
 
-    G13_DEVICE_COMMAND(bind) {
+    // G13_DEVICE_COMMAND(bind) {
+    command_adder add_bind(_command_table, "bind", [this](const char *remainder) {
         std::string keyname;
         advance_ws(remainder, keyname);
         std::string action = remainder;
@@ -523,24 +532,40 @@ void G13_Device::_init_commands() {
         } catch (const std::exception& ex) {
             RETURN_FAIL("bind " << keyname << " " << action << " failed : " << ex.what());
         }
-    }
+    });
 
-    G13_DEVICE_COMMAND(profile) { switch_to_profile(remainder); }
+    // G13_DEVICE_COMMAND(profile) {
+    command_adder add_profile(_command_table, "profile", [this](const char *remainder) {
+        switch_to_profile(remainder);
+    });
 
-    G13_DEVICE_COMMAND(font) { switch_to_font(remainder); }
-    G13_DEVICE_COMMAND(mod) { set_mode_leds(atoi(remainder)); }
-    G13_DEVICE_COMMAND(textmode) { lcd().text_mode = atoi(remainder); }
+    //G13_DEVICE_COMMAND(font) {
+    command_adder add_font(_command_table, "font", [this](const char *remainder) {
+        switch_to_font(remainder);
+    });
 
-    G13_DEVICE_COMMAND(rgb) {
+    // G13_DEVICE_COMMAND(mod) {
+    command_adder add_mod(_command_table, "mod", [this](const char *remainder) {
+        set_mode_leds(atoi(remainder));
+    });
+
+    // G13_DEVICE_COMMAND(textmode) {
+    command_adder add_textmode(_command_table, "textmode", [this](const char *remainder) {
+        lcd().text_mode = atoi(remainder);
+    });
+
+    //G13_DEVICE_COMMAND(rgb) {
+    command_adder add_rgb(_command_table, "rgb", [this](const char *remainder) {
         int red, green, blue;
         if (sscanf(remainder, "%i %i %i", &red, &green, &blue) == 3) {
             set_key_color(red, green, blue);
         } else {
             RETURN_FAIL("rgb bad format: <" << remainder << ">");
         }
-    }
+    });
 
-    G13_DEVICE_COMMAND(stickmode) {
+    // G13_DEVICE_COMMAND(stickmode) {
+    command_adder add_stickmode(_command_table, "stickmode", [this](const char *remainder) {
         std::string mode = remainder;
 //#define STICKMODE_TEST(r, data, elem)                \
 //    if (mode == std::string(elem)) {          \
@@ -562,9 +587,10 @@ void G13_Device::_init_commands() {
 //                              (ABSOLUTE)(RELATIVE)(KEYS)(CALCENTER)(CALBOUNDS)(CALNORTH)) {
 //            RETURN_FAIL("unknown stick mode : <" << mode << ">");
 //        }
-    }
+    });
 
-    G13_DEVICE_COMMAND(stickzone) {
+    // G13_DEVICE_COMMAND(stickzone) {
+    command_adder add_stickzone(_command_table, "stickzone", [this](const char *remainder) {
         std::string operation, zonename;
         advance_ws(remainder, operation);
         advance_ws(remainder, zonename);
@@ -590,9 +616,10 @@ void G13_Device::_init_commands() {
                 RETURN_FAIL("unknown stickzone operation: <" << operation << ">");
             }
         }
-    }
+    });
 
-    G13_DEVICE_COMMAND(dump) {
+    // G13_DEVICE_COMMAND(dump) {
+    command_adder add_dump(_command_table, "dump", [this](const char *remainder) {
         std::string target;
         advance_ws(remainder, target);
         if (target == "all") {
@@ -604,22 +631,25 @@ void G13_Device::_init_commands() {
         } else {
             RETURN_FAIL("unknown dump target: <" << target << ">");
         }
-    }
+    });
 
-    G13_DEVICE_COMMAND(log_level) {
+    // G13_DEVICE_COMMAND(log_level) {
+    command_adder add_log_level(_command_table, "log_level", [this](const char *remainder) {
         std::string level;
         advance_ws(remainder, level);
         manager().set_log_level(level);
-    }
+    });
 
-    G13_DEVICE_COMMAND(refresh) { lcd().image_send(); }
+    // G13_DEVICE_COMMAND(refresh) {
+    command_adder add_refresh(_command_table, "refresh", [this](const char *remainder) {
+        lcd().image_send();
+    });
 
-    G13_DEVICE_COMMAND(clear) {
+    // G13_DEVICE_COMMAND(clear) {
+    command_adder add_clear(_command_table, "clear", [this](const char *remainder) {
         lcd().image_clear();
         lcd().image_send();
-    }
-
-    ;
+    });
 }
 
 void G13_Device::command(char const* str) {

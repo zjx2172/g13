@@ -37,5 +37,5 @@ add_executable(runtests
         logo.h
         testKeys.cpp)
 
-target_link_libraries (g13 usb-1.0 log4cpp pthread evdev)
-target_link_libraries (runtests usb-1.0 log4cpp pthread evdev gtest gmock)
+target_link_libraries (g13 usb-1.0 log4cpp evdev)
+target_link_libraries (runtests usb-1.0 log4cpp evdev gtest gmock)

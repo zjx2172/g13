@@ -429,7 +429,7 @@ class G13_Device {
     int id_within_manager() const { return _id_within_manager; }
 
     // typedef boost::function<void(const char*)> COMMAND_FUNCTION;
-    typedef std::function<void(const char*)> COMMAND_FUNCTION;
+    typedef std::function<void (const char*)> COMMAND_FUNCTION;
     typedef std::map<std::string, COMMAND_FUNCTION> CommandFunctionTable;
 
    protected:
