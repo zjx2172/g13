@@ -202,24 +202,10 @@ void G13_Manager::cleanup() {
 // *************************************************************************
 
 static std::string describe_libusb_error_code(int code) {
-    /*
-    #define TEST_libusb_error(r, data, elem) \
-        case BOOST_PP_CAT(LIBUSB_, elem):    \
-            return BOOST_PP_STRINGIZE(elem);
-
-        switch (code) {
-            BOOST_PP_SEQ_FOR_EACH(
-                TEST_libusb_error, _,
-                (SUCCESS)(ERROR_IO)(ERROR_INVALID_PARAM)(ERROR_ACCESS)(ERROR_NO_DEVICE)(
-                    ERROR_NOT_FOUND)(ERROR_BUSY)(ERROR_TIMEOUT)(ERROR_OVERFLOW)(ERROR_PIPE)(
-                    ERROR_INTERRUPTED)(ERROR_NO_MEM)(ERROR_NOT_SUPPORTED)(ERROR_OTHER))
-        }
-    */
-    // return "unknown error";
-
     auto description =
         std::string(libusb_error_name(code)) + " " + std::string(libusb_strerror((libusb_error) code));
     return std::move(description);
+    // return "unknown error";
 }
 
 // *************************************************************************
@@ -293,15 +279,10 @@ void G13_Device::read_commands() {
             lcd().image(buf, ret);
         } else {
             std::string buffer = reinterpret_cast<const char*>(buf);
-            // boost::split(lines, buffer, boost::is_any_of("\n\r"));
-
             auto lines = Helper::split<std::vector<std::string>>(buffer, "\n\r", Helper::split::no_empties);
 
-            // BOOST_FOREACH (std::string const& cmd, lines) {
             for (auto& cmd : lines) {
                 auto command_comment = Helper::split<std::vector<std::string>>(cmd, "#",  Helper::split::no_empties);
-                // boost::split(command_comment, cmd, boost::is_any_of("#"));
-
 
                 if (command_comment.size() > 0 && command_comment[0] != std::string("")) {
                     G13_OUT("command: " << command_comment[0]);
@@ -361,7 +342,6 @@ G13_Action_Keys::G13_Action_Keys(G13_Device& keypad, const std::string& keys_str
     : G13_Action(keypad) {
     auto keys = Helper::split<std::vector<std::string>>(keys_string, "+");
 
-    // BOOST_FOREACH (std::string const& key, keys) {
     for (auto& key : keys) {
         auto kval = manager().find_input_key_value(key);
         if (kval == BAD_KEY_VALUE) {
@@ -438,7 +418,7 @@ G13_ActionPtr G13_Device::make_action(const std::string& action) {
     } else {
         return G13_ActionPtr(new G13_Action_Keys(*this, action));
     }
-    throw G13_CommandException("can't create action for " + action);
+    // UNREACHABLE: throw G13_CommandException("can't create action for " + action);
 }
 
 // *************************************************************************
@@ -485,21 +465,14 @@ struct command_adder {
     };
 };
 
-#define G13_DEVICE_COMMAND(name)                                                      \
-    ;                                                                                 \
-    command_adder BOOST_PP_CAT(add_, name)(_command_table, BOOST_PP_STRINGIZE(name)); \
-    BOOST_PP_CAT(add_, name) += [this](const char* remainder)
-
 void G13_Device::_init_commands() {
     using Helper::advance_ws;
     const char *remainder;
 
-    // G13_DEVICE_COMMAND(out) { lcd().write_string(remainder); }
     command_adder add_out(_command_table, "out", [this](const char *remainder) {
         lcd().write_string(remainder);
     });
 
-    // G13_DEVICE_COMMAND(pos) {
     command_adder add_pos(_command_table, "pos", [this](const char *remainder) {
         int row, col;
         if (sscanf(remainder, "%i %i", &row, &col) == 2) {
@@ -509,7 +482,6 @@ void G13_Device::_init_commands() {
         }
     });
 
-    // G13_DEVICE_COMMAND(bind) {
     command_adder add_bind(_command_table, "bind", [this](const char *remainder) {
         std::string keyname;
         advance_ws(remainder, keyname);
@@ -528,27 +500,22 @@ void G13_Device::_init_commands() {
         }
     });
 
-    // G13_DEVICE_COMMAND(profile) {
     command_adder add_profile(_command_table, "profile", [this](const char *remainder) {
         switch_to_profile(remainder);
     });
 
-    //G13_DEVICE_COMMAND(font) {
     command_adder add_font(_command_table, "font", [this](const char *remainder) {
         switch_to_font(remainder);
     });
 
-    // G13_DEVICE_COMMAND(mod) {
     command_adder add_mod(_command_table, "mod", [this](const char *remainder) {
         set_mode_leds(atoi(remainder));
     });
 
-    // G13_DEVICE_COMMAND(textmode) {
     command_adder add_textmode(_command_table, "textmode", [this](const char *remainder) {
         lcd().text_mode = atoi(remainder);
     });
 
-    //G13_DEVICE_COMMAND(rgb) {
     command_adder add_rgb(_command_table, "rgb", [this](const char *remainder) {
         int red, green, blue;
         if (sscanf(remainder, "%i %i %i", &red, &green, &blue) == 3) {
@@ -558,14 +525,8 @@ void G13_Device::_init_commands() {
         }
     });
 
-    // G13_DEVICE_COMMAND(stickmode) {
     command_adder add_stickmode(_command_table, "stickmode", [this](const char *remainder) {
         std::string mode = remainder;
-//#define STICKMODE_TEST(r, data, elem)                \
-//    if (mode == std::string(elem)) {          \
-//        _stick.set_mode(std::string("STICK_", elem)); \
-//        return;                                      \
-//    } else
         // TODO: this could be part of a G13::Constants class I think
         const std::set<std::string> modes = { "ABSOLUTE","RELATIVE","KEYS","CALCENTER","CALBOUNDS","CALNORTH" };
         int index = 0;
@@ -577,13 +538,8 @@ void G13_Device::_init_commands() {
             index++;
         }
         RETURN_FAIL("unknown stick mode : <" << mode << ">");
-//        BOOST_PP_SEQ_FOR_EACH(STICKMODE_TEST, _,
-//                              (ABSOLUTE)(RELATIVE)(KEYS)(CALCENTER)(CALBOUNDS)(CALNORTH)) {
-//            RETURN_FAIL("unknown stick mode : <" << mode << ">");
-//        }
     });
 
-    // G13_DEVICE_COMMAND(stickzone) {
     command_adder add_stickzone(_command_table, "stickzone", [this](const char *remainder) {
         std::string operation, zonename;
         advance_ws(remainder, operation);
@@ -612,7 +568,6 @@ void G13_Device::_init_commands() {
         }
     });
 
-    // G13_DEVICE_COMMAND(dump) {
     command_adder add_dump(_command_table, "dump", [this](const char *remainder) {
         std::string target;
         advance_ws(remainder, target);
@@ -627,19 +582,16 @@ void G13_Device::_init_commands() {
         }
     });
 
-    // G13_DEVICE_COMMAND(log_level) {
     command_adder add_log_level(_command_table, "log_level", [this](const char *remainder) {
         std::string level;
         advance_ws(remainder, level);
         manager().set_log_level(level);
     });
 
-    // G13_DEVICE_COMMAND(refresh) {
     command_adder add_refresh(_command_table, "refresh", [this](const char *remainder) {
         lcd().image_send();
     });
 
-    // G13_DEVICE_COMMAND(clear) {
     command_adder add_clear(_command_table, "clear", [this](const char *remainder) {
         lcd().image_clear();
         lcd().image_send();

@@ -33,7 +33,8 @@ void G13_Device::init_lcd() {
 void G13_Device::write_lcd(unsigned char* data, size_t size) {
     init_lcd();
     if (size != G13_LCD_BUFFER_SIZE) {
-        G13_LOG(log4cpp::Priority::ERROR << "Invalid LCD data size " << size << ", should be " << G13_LCD_BUFFER_SIZE);
+        G13_LOG(log4cpp::Priority::ERROR << "Invalid LCD data size " << size << ", should be "
+                                         << G13_LCD_BUFFER_SIZE);
         return;
     }
     unsigned char buffer[G13_LCD_BUFFER_SIZE + 32];
@@ -45,8 +46,7 @@ void G13_Device::write_lcd(unsigned char* data, size_t size) {
                                           G13_LCD_BUFFER_SIZE + 32, &bytes_written, 1000);
     if (error) {
         G13_LOG(log4cpp::Priority::ERROR << "Error when transferring image: " << error << ", "
-                                         << bytes_written
-                                         << " bytes written");
+                                         << bytes_written << " bytes written");
     }
 }
 
@@ -84,7 +84,8 @@ void G13_LCD::image_setpixel(unsigned row, unsigned col) {
     unsigned char mask = 1 << ((row)&7);
 
     if (offset >= G13_LCD_BUF_SIZE) {
-        G13_LOG(log4cpp::Priority::ERROR << "bad offset " << offset << " for " << (row) << " x " << (col));
+        G13_LOG(log4cpp::Priority::ERROR << "bad offset " << offset << " for " << (row) << " x "
+                                         << (col));
         return;
     }
 
@@ -96,7 +97,8 @@ void G13_LCD::image_clearpixel(unsigned row, unsigned col) {
     unsigned char mask = 1 << ((row)&7);
 
     if (offset >= G13_LCD_BUF_SIZE) {
-        G13_LOG(log4cpp::Priority::ERROR << "bad offset " << offset << " for " << (row) << " x " << (col));
+        G13_LOG(log4cpp::Priority::ERROR << "bad offset " << offset << " for " << (row) << " x "
+                                         << (col));
         return;
     }
     image_buf[offset] &= ~mask;

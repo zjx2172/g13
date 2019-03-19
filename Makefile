@@ -1,7 +1,7 @@
 all: g13d pbm2lpbm
 
 FLAGS=$(CXXFLAGS) -std=c++17
-LIBS=-lusb-1.0 -llog4cpp -lpthread -levdev
+LIBS=-lusb-1.0 -llog4cpp -levdev
 
 g13.o: g13.h helper.hpp g13.cc
 	g++ $(FLAGS) -c g13.cc
@@ -42,5 +42,6 @@ package:
 	cp g13.cc g13.h logo.h Makefile pbm2lpbm.cc g13-userspace
 	tar cjf g13-userspace.tbz2 g13-userspace
 	rm -Rf g13-userspace
-clean: 
+
+clean:
 	rm -f g13d pbm2lpbm *.o

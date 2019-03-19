@@ -1,28 +1,26 @@
 #ifndef __G13_H__
 #define __G13_H__
 
+// clang-format off
 #include "helper.hpp"
+// clang-format on
+#include <libusb-1.0/libusb.h>
 #include <linux/uinput.h>
 #include <signal.h>
 #include <unistd.h>
 #include <fstream>
-#include <memory>
 #include <functional>
 #include <log4cpp/Category.hh>
-#include <libusb-1.0/libusb.h>
+#include <memory>
 
 // *************************************************************************
 
 namespace G13 {
 
-//#define G13_LOG(level, message) BOOST_LOG_TRIVIAL(level) << message
-//#define G13_OUT(message) BOOST_LOG_TRIVIAL(info) << message
-
 #define G13_LOG(message) log4cpp::Category::getRoot() << message
 #define G13_ERR(message) log4cpp::Category::getRoot() << log4cpp::Priority::ERROR << message
 #define G13_DBG(message) log4cpp::Category::getRoot() << log4cpp::Priority::DEBUG << message
 #define G13_OUT(message) log4cpp::Category::getRoot() << log4cpp::Priority::INFO << message
-
 
 const size_t G13_INTERFACE = 0;
 const size_t G13_KEY_ENDPOINT = 1;
@@ -234,7 +232,7 @@ class G13_Profile {
 
     const G13_Manager& manager() const;
 
-protected:
+   protected:
     G13_Device& _keypad;
     std::vector<G13_Key> _keys;
     std::string _name;
@@ -422,7 +420,7 @@ class G13_Device {
     int id_within_manager() const { return _id_within_manager; }
 
     // typedef boost::function<void(const char*)> COMMAND_FUNCTION;
-    typedef std::function<void (const char*)> COMMAND_FUNCTION;
+    typedef std::function<void(const char*)> COMMAND_FUNCTION;
     typedef std::map<std::string, COMMAND_FUNCTION> CommandFunctionTable;
 
    protected:

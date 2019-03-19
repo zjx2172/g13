@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
     manager.start_logging();
     manager.set_log_level("INFO");
 
+    // TODO: move out argument parsing
     const char* const short_opts = "l:c:i:o:d:h";
     const option long_opts[] = {
         {"logo", required_argument, nullptr, 'l'},

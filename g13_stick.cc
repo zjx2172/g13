@@ -30,7 +30,6 @@ G13_Stick::G13_Stick(G13_Device& keypad)
 }
 
 G13_StickZone* G13_Stick::zone(const std::string& name, bool create) {
-//    BOOST_FOREACH (G13_StickZone& zone, _zones) {
     for (auto &zone : _zones) {
         if (zone.name() == name) {
             return &zone;
@@ -66,7 +65,6 @@ void G13_Stick::remove_zone(const G13_StickZone& zone) {
     _zones.erase(std::remove(_zones.begin(), _zones.end(), target), _zones.end());
 }
 void G13_Stick::dump(std::ostream& out) const {
-    // BOOST_FOREACH (const G13_StickZone& zone, _zones) {
     for (auto &zone : _zones) {
         zone.dump(out);
         out << std::endl;
