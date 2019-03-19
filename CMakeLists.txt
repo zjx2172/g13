@@ -12,7 +12,7 @@ add_executable(g13
         g13_fonts.cpp
         g13_keys.cpp
         g13_lcd.cpp
-        g13_log.cp
+        g13_log.cpp
         g13_main.cpp
         g13_stick.cpp
         g13_test.py
@@ -20,6 +20,18 @@ add_executable(g13
         helper.hpp
         logo.hpp)
 
+set_source_files_properties(version PROPERTIES GENERATED true)
+add_custom_target(version
+        COMMAND sh GIT-VERSION-GEN
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_dependencies(g13 version)
+ADD_CUSTOM_COMMAND(
+        COMMENT "version files clean"
+        COMMAND rm
+        ARGS    -f GIT-VERSION-FILE GIT-VERSION.h
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        TARGET  g13
+)
 add_executable(pbm2lpbm
         pbm2lpbm.cpp)
 
@@ -29,7 +41,7 @@ add_executable(runtests
         g13_fonts.cpp
         g13_keys.cpp
         g13_lcd.cpp
-        g13_log.cp
+        g13_log.cpp
         g13_stick.cpp
         g13_test.py
         helper.cpp

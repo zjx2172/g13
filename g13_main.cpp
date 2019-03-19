@@ -1,4 +1,5 @@
 #include "g13.hpp"
+#include "GIT-VERSION.h"
 #include <getopt.h>
 
 using namespace G13;
@@ -24,9 +25,11 @@ void printHelp() {
 }
 
 int main(int argc, char* argv[]) {
+
     G13_Manager manager;
     manager.start_logging();
     manager.set_log_level("INFO");
+    G13_OUT("g13d v" << GIT_VERSION << " " << __DATE__ << " " << __TIME__);
 
     // TODO: move out argument parsing
     const char* const short_opts = "l:c:i:o:d:h";
