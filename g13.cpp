@@ -10,6 +10,8 @@ namespace G13 {
 
 // *************************************************************************
 
+// TODO: lots of cleaning to do
+
 void G13_Device::send_event(int type, int code, int val) {
     memset(&_event, 0, sizeof(_event));
     gettimeofday(&_event.time, 0);
@@ -136,8 +138,14 @@ int g13_create_uinput(G13_Device* g13) {
     ioctl(ufile, UI_SET_ABSBIT, ABS_Y);
     /*  ioctl(ufile, UI_SET_RELBIT, REL_X);
      ioctl(ufile, UI_SET_RELBIT, REL_Y);*/
-    for (int i = 0; i < 256; i++)
+    for (int i = 0; i < 256; i++) {
         ioctl(ufile, UI_SET_KEYBIT, i);
+    }
+
+    // Mouse buttons
+    for (int i = 0x110; i < 0x118; i++) {
+        ioctl(ufile, UI_SET_KEYBIT, i);
+    }
     ioctl(ufile, UI_SET_KEYBIT, BTN_THUMB);
 
     int retcode = write(ufile, &uinp, sizeof(uinp));
@@ -704,13 +712,13 @@ int G13_Manager::run() {
     g13s[0]->stick().dump(std::cout);
 
     std::string config_fn = string_config_value("config");
-    if (config_fn.size()) {
+    if (!config_fn.empty()) {
         G13_OUT("config_fn = " << config_fn);
         g13s[0]->read_config_file(config_fn);
     }
 
     do {
-        if (g13s.size() > 0)
+        if (!g13s.empty())
             for (int i = 0; i < g13s.size(); i++) {
                 int status = g13s[i]->read_keys();
                 g13s[i]->read_commands();
@@ -720,6 +728,6 @@ int G13_Manager::run() {
     } while (running);
     cleanup();
 
-    return 0;
+    // return 0;
 }
 }  // namespace G13

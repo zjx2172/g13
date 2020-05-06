@@ -53,7 +53,25 @@ const std::vector<std::string> G13_SYMBOLS = {
     "APOSTROPHE","GRAVE","LEFTSHIFT","BACKSLASH","Z","X","C","V","B","N","M","COMMA","DOT","SLASH","RIGHTSHIFT",
     "KPASTERISK","LEFTALT","RIGHTALT","SPACE","CAPSLOCK","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12",
     "NUMLOCK","SCROLLLOCK","KP7","KP8","KP9","KPMINUS","KP4","KP5","KP6","KPPLUS","KP1","KP2","KP3","KP0","KPDOT",
-    "LEFT","RIGHT","UP","DOWN","PAGEUP","PAGEDOWN","HOME","END","INSERT","DELETE"
+    "KPSLASH","LEFT","RIGHT","UP","DOWN","PAGEUP","PAGEDOWN","HOME","END","INSERT","DELETE","F13","F14","F15","F16",
+    "F17","F18","F19","F20","F21","F22","F23","F24","NEXTSONG","PLAYPAUSE","PREVIOUSSONG"
+};
+// clang-format on
+
+// formerly M_INPUT_BTN_SEQ
+/*! m_INPUT_BTN_SEQ is a Boost Preprocessor sequence containing the
+ * names of button events we can send through binding actions.
+ * These correspond to BTN_xxx value definitions in <linux/input.h>,
+ * i.e. LEFT is BTN_LEFT, RIGHT is BTN_RIGHT, etc.
+ *
+ * The binding names have prefix M to avoid naming conflicts.
+ * e.g. LEFT keyboard button and LEFT mouse button
+ * i.e. LEFT mouse button is named MLEFT, MIDDLE mouse button is MMIDDLE
+ */
+
+// clang-format off
+const std::vector<std::string> G13_BTN_SEQ = {
+        "LEFT","RIGHT","MIDDLE","SIDE","EXTRA"
 };
 // clang-format on
 
@@ -158,15 +176,29 @@ void G13_Manager::init_keynames() {
         int code = libevdev_event_code_from_name(EV_KEY, keyname.c_str());
         if (code < 0) {
             G13_ERR("No input event code found for " << keyname);
+        } else {
+            // TODO: this seems to map ok but the result is off
+            // assert(keyname.compare(libevdev_event_code_get_name(EV_KEY,code)) == 0);
+            // linux/input-event-codes.h
+
+            input_key_to_name[code] = symbol;
+            input_name_to_key[symbol] = code;
+            G13_DBG("mapping " << symbol << " " << keyname << "=" << code);
         }
+    }
 
-        // TODO: this seems to map ok but the result is off
-        // assert(keyname.compare(libevdev_event_code_get_name(EV_KEY,code)) == 0);
-        // linux/input-event-codes.h
-
-        input_key_to_name[code] = symbol;
-        input_name_to_key[symbol] = code;
-        G13_DBG("mapping " << symbol << " " << keyname << "=" << code);
+    // setup maps to let us convert between strings and linux button names
+    for (auto& symbol : G13_BTN_SEQ) {
+        auto name = std::string("M" + symbol);
+        auto keyname = std::string("BTN_" + symbol);
+        int code = libevdev_event_code_from_name(EV_KEY, keyname.c_str());
+        if (code < 0) {
+            G13_ERR("No input event code found for " << keyname);
+        } else {
+            input_key_to_name[code] = name;
+            input_name_to_key[name] = code;
+            G13_DBG("mapping " << name << " " << keyname << "=" << code);
+        }
     }
 }
 
