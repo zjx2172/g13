@@ -230,8 +230,10 @@ int G13_Device::read_keys() {
     if (error && error != LIBUSB_ERROR_TIMEOUT) {
         G13_ERR("Error while reading keys: " << error << " (" << describe_libusb_error_code(error)
                                              << ")");
-        //    G13_LOG( error, "Stopping daemon" );
-        //    return -1;
+        if (error == LIBUSB_ERROR_NO_DEVICE) {
+            //    G13_LOG( error, "Stopping daemon" );
+            return -1;
+        }
     }
     if (size == G13_REPORT_SIZE) {
         parse_joystick(buffer);
@@ -722,12 +724,14 @@ int G13_Manager::run() {
             for (int i = 0; i < g13s.size(); i++) {
                 int status = g13s[i]->read_keys();
                 g13s[i]->read_commands();
-                if (status < 0)
+                if (status < 0) {
                     running = false;
+                }
             }
     } while (running);
     cleanup();
 
+    G13_OUT("Exit");
     return 0;
 }
 }  // namespace G13
