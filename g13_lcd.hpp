@@ -4,6 +4,9 @@
 
 #ifndef G13_G13_LCD_HPP
 #define G13_G13_LCD_HPP
+
+#include <cstring>
+
 namespace G13 {
     class G13_Device;
 

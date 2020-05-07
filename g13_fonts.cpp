@@ -1,6 +1,8 @@
-#include "g13.hpp"
+#include "g13_fonts.hpp"
+#include "g13_device.hpp"
 
 namespace G13 {
+
 
 // font data from https://github.com/dhepper/font8x8
 // Constant: font8x8_basic

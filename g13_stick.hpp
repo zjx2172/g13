@@ -6,9 +6,17 @@
 #define G13_G13_STICK_HPP
 
 #include <vector>
-#include "g13.hpp"
+// #include "g13_device.hpp"
+// #include "g13.hpp"
+#include "helper.hpp"
 
 namespace G13 {
+    class G13_Device;
+
+    typedef Helper::Coord<int> G13_StickCoord;
+    typedef Helper::Bounds<int> G13_StickBounds;
+    typedef Helper::Coord<double> G13_ZoneCoord;
+    typedef Helper::Bounds<double> G13_ZoneBounds;
 
     // *************************************************************************
 
@@ -23,12 +31,6 @@ namespace G13 {
         STICK_CALNORTH
     };
 
-    using Helper::repr;
-
-    typedef Helper::Coord<int> G13_StickCoord;
-    typedef Helper::Bounds<int> G13_StickBounds;
-    typedef Helper::Coord<double> G13_ZoneCoord;
-    typedef Helper::Bounds<double> G13_ZoneBounds;
 
     class G13_Stick {
     public:

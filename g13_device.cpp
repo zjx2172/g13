@@ -1,8 +1,16 @@
 //
 // Created by khampf on 07-05-2020.
 //
+
+#include <unistd.h>
+#include <fstream>
+// #include <libnet.h>
 #include "g13_device.hpp"
 #include "logo.hpp"
+#include "g13_fonts.hpp"
+#include "g13_stick.hpp"
+#include "g13_log.hpp"
+#include "g13.hpp"
 
 namespace G13 {
     // *************************************************************************
@@ -278,8 +286,8 @@ namespace G13 {
 
     void G13_Device::dump(std::ostream& o, int detail) {
         o << "G13 id=" << id_within_manager() << std::endl;
-        o << "   input_pipe_name=" << repr(_input_pipe_name) << std::endl;
-        o << "   output_pipe_name=" << repr(_output_pipe_name) << std::endl;
+        o << "   input_pipe_name=" << Helper::repr(_input_pipe_name) << std::endl;
+        o << "   output_pipe_name=" << Helper::repr(_output_pipe_name) << std::endl;
         o << "   current_profile=" << _current_profile->name() << std::endl;
         o << "   current_font=" << _current_font->name() << std::endl;
 

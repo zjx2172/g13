@@ -1,28 +1,24 @@
 #ifndef __G13_H__
 #define __G13_H__
 
-// clang-format off
-#include "helper.hpp"
+
 #include "g13_device.hpp"
-// clang-format on
+#include "g13_action.hpp"
+#include "g13_stick.hpp"
+#include "g13_log.hpp"
+#include "helper.hpp"
 #include <libusb-1.0/libusb.h>
-#include <linux/uinput.h>
-#include <csignal>
-#include <unistd.h>
-#include <fstream>
-#include <functional>
-#include <log4cpp/Category.hh>
-#include <memory>
-#include <utility>
+
+// *************************************************************************
+
+//using Helper::find_or_throw;
+//using Helper::repr;
 
 // *************************************************************************
 
 namespace G13 {
 
-#define G13_LOG(message) log4cpp::Category::getRoot() << message
-#define G13_ERR(message) log4cpp::Category::getRoot() << log4cpp::Priority::ERROR << message
-#define G13_DBG(message) log4cpp::Category::getRoot() << log4cpp::Priority::DEBUG << message
-#define G13_OUT(message) log4cpp::Category::getRoot() << log4cpp::Priority::INFO << message
+
 
 // const size_t G13_INTERFACE = 0;
 const size_t G13_KEY_ENDPOINT = 1;
@@ -32,32 +28,18 @@ const size_t G13_VENDOR_ID = 0x046d;
 const size_t G13_PRODUCT_ID = 0xc21c;
 const size_t G13_REPORT_SIZE = 8;
 
-typedef int LINUX_KEY_VALUE;
-const LINUX_KEY_VALUE BAD_KEY_VALUE = -1;
-
 typedef int G13_KEY_INDEX;
 
-// Initialized in g13_keys.cpp
-static std::vector<std::string> G13_KEY_STRINGS;
-static std::vector<std::string> G13_NONPARSED_KEYS;
-static std::vector<std::string> G13_SYMBOLS;
-static std::vector<std::string> G13_BTN_SEQ;
 
-// *************************************************************************
-
-using Helper::find_or_throw;
-using Helper::repr;
+    // typedef std::shared_ptr<G13_Action> G13_ActionPtr;
+    typedef int LINUX_KEY_VALUE;
 
 // *************************************************************************
 
 class G13_Action;
 class G13_Stick;
 class G13_Profile;
-class G13_Device;
 class G13_Manager;
-
-typedef std::shared_ptr<G13_Profile> ProfilePtr;
-typedef std::shared_ptr<G13_Action> G13_ActionPtr;
 
 class G13_CommandException : public std::exception {
    public:
@@ -68,98 +50,6 @@ class G13_CommandException : public std::exception {
     std::string _reason;
 };
 
-// *************************************************************************
-
-/*! holds potential actions which can be bound to G13 activity
- *
- */
-class G13_Action {
-   public:
-    explicit G13_Action(G13_Device& keypad) : _keypad(keypad) {}
-    virtual ~G13_Action();
-
-    virtual void act(G13_Device&, bool is_down) = 0;
-    virtual void dump(std::ostream&) const = 0;
-
-    void act(bool is_down) { act(keypad(), is_down); }
-
-    G13_Device& keypad() { return _keypad; }
-
-    // [[maybe_unused]] [[nodiscard]] const G13_Device& keypad() const { return _keypad; }
-
-    G13_Manager& manager();
-    [[nodiscard]] const G13_Manager& manager() const;
-
-   private:
-    G13_Device& _keypad;
-};
-
-/*!
- * action to send one or more keystrokes
- */
-class G13_Action_Keys : public G13_Action {
-   public:
-    G13_Action_Keys(G13_Device& keypad, const std::string& keys);
-    ~G13_Action_Keys() override;
-
-    void act(G13_Device&, bool is_down) override;
-    void dump(std::ostream&) const override;
-
-    std::vector<LINUX_KEY_VALUE> _keys;
-};
-
-/*!
- * action to send a string to the output pipe
- */
-class G13_Action_PipeOut : public G13_Action {
-   public:
-    G13_Action_PipeOut(G13_Device& keypad, const std::string& out);
-    ~G13_Action_PipeOut() override;
-
-    void act(G13_Device&, bool is_down) override;
-    void dump(std::ostream&) const override;
-
-    std::string _out;
-};
-
-/*!
- * action to send a command to the g13
- */
-class G13_Action_Command : public G13_Action {
-   public:
-    G13_Action_Command(G13_Device& keypad, std::string cmd);
-    ~G13_Action_Command() override;
-
-    void act(G13_Device&, bool is_down) override;
-    void dump(std::ostream&) const override;
-
-    std::string _cmd;
-};
-
-// *************************************************************************
-template <class PARENT_T>
-class G13_Actionable {
-   public:
-    G13_Actionable(PARENT_T& parent_arg, std::string  name)
-        : _parent_ptr(&parent_arg), _name(std::move(name)) {}
-    virtual ~G13_Actionable() { _parent_ptr = nullptr; }
-
-    [[nodiscard]] G13_ActionPtr action() const { return _action; }
-    [[nodiscard]] const std::string& name() const { return _name; }
-    // PARENT_T& parent() { return *_parent_ptr; }
-    // [[nodiscard]] const PARENT_T& parent() const { return *_parent_ptr; }
-    // G13_Manager& manager() { return _parent_ptr->manager(); }
-    [[nodiscard]] const G13_Manager& manager() const { return _parent_ptr->manager(); }
-
-    virtual void set_action(const G13_ActionPtr& action) { _action = action; }
-
-   protected:
-    std::string _name;
-    G13_ActionPtr _action;
-
-   private:
-    PARENT_T* _parent_ptr;
-};
 
 // *************************************************************************
 /*! manages the bindings for a G13 key
@@ -231,7 +121,14 @@ class G13_Profile {
     void _init_keys();
 };
 
+    typedef std::shared_ptr<G13_Profile> ProfilePtr;
 
+// *************************************************************************
+
+    typedef Helper::Coord<int> G13_StickCoord;
+    typedef Helper::Bounds<int> G13_StickBounds;
+    typedef Helper::Coord<double> G13_ZoneCoord;
+    typedef Helper::Bounds<double> G13_ZoneBounds;
 
 // *************************************************************************
 
@@ -307,22 +204,9 @@ class G13_Manager {
 };
 
 // *************************************************************************
-
-// inlines
-
-inline G13_Manager& G13_Action::manager() {
-    return _keypad.manager();
-}
-
-inline const G13_Manager& G13_Action::manager() const {
-    return _keypad.manager();
-}
-
-inline const G13_Manager& G13_Profile::manager() const {
-    return _keypad.manager();
-}
-
-// *************************************************************************
+    inline const G13_Manager& G13_Profile::manager() const {
+        return _keypad.manager();
+    }
 
 }  // namespace G13
 

@@ -6,6 +6,7 @@
 #define G13_G13_FONTS_HPP
 
 #include <memory>
+#include <cstring>
 
 namespace G13 {
     class G13_Font;
@@ -31,7 +32,7 @@ namespace G13 {
         G13_Font();
         explicit G13_Font(const std::string& name, unsigned int width = 8);
 
-        void set_character(unsigned int c, unsigned char* data);
+        // void set_character(unsigned int c, unsigned char* data);
 
         template <class ARRAY_T, class FLAGST>
         void install_font(ARRAY_T& data, FLAGST flags, int first = 0);

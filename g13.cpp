@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <utility>
+#include <signal.h>
 #include "helper.hpp"
 #include "logo.hpp"
 
@@ -63,78 +64,6 @@ void G13_Manager::cleanup() {
     libusb_exit(ctx);
 }
 
-// *************************************************************************
-
-G13_Action::~G13_Action() = default;
-
-G13_Action_Keys::G13_Action_Keys(G13_Device& keypad, const std::string& keys_string)
-    : G13_Action(keypad) {
-    auto keys = Helper::split<std::vector<std::string>>(keys_string, "+");
-
-    for (auto& key : keys) {
-        auto kval = manager().find_input_key_value(key);
-        if (kval == BAD_KEY_VALUE) {
-            throw G13_CommandException("create action unknown key : " + key);
-        }
-        _keys.push_back(kval);
-    }
-
-    std::vector<int> _keys_local;
-}
-
-G13_Action_Keys::~G13_Action_Keys() = default;
-
-void G13_Action_Keys::act(G13_Device& g13, bool is_down) {
-    if (is_down) {
-        for (int & _key : _keys) {
-            g13.send_event(EV_KEY, _key, is_down);
-            G13_LOG(log4cpp::Priority::DEBUG << "sending KEY DOWN " << _key);
-        }
-    } else {
-        for (int i = _keys.size() - 1; i >= 0; i--) {
-            g13.send_event(EV_KEY, _keys[i], is_down);
-            G13_LOG(log4cpp::Priority::DEBUG << "sending KEY UP " << _keys[i]);
-        }
-    }
-}
-
-void G13_Action_Keys::dump(std::ostream& out) const {
-    out << " SEND KEYS: ";
-
-    for (size_t i = 0; i < _keys.size(); i++) {
-        if (i)
-            out << " + ";
-        out << manager().find_input_key_name(_keys[i]);
-    }
-}
-
-G13_Action_PipeOut::G13_Action_PipeOut(G13_Device& keypad, const std::string& out)
-    : G13_Action(keypad), _out(out + "\n") {}
-G13_Action_PipeOut::~G13_Action_PipeOut() = default;
-
-void G13_Action_PipeOut::act(G13_Device& kp, bool is_down) {
-    if (is_down) {
-        kp.write_output_pipe(_out);
-    }
-}
-
-void G13_Action_PipeOut::dump(std::ostream& o) const {
-    o << "WRITE PIPE : " << repr(_out);
-}
-
-G13_Action_Command::G13_Action_Command(G13_Device& keypad, std::string  cmd)
-    : G13_Action(keypad), _cmd(std::move(cmd)) {}
-G13_Action_Command::~G13_Action_Command() = default;
-
-void G13_Action_Command::act(G13_Device& kp, bool is_down) {
-    if (is_down) {
-        keypad().command(_cmd.c_str());
-    }
-}
-
-void G13_Action_Command::dump(std::ostream& o) const {
-    o << "COMMAND : " << repr(_cmd);
-}
 
 G13_Manager::G13_Manager() : ctx(nullptr), devs(nullptr) {}
 
@@ -149,13 +78,13 @@ void G13_Manager::signal_handler(int signal) {
 
 std::string G13_Manager::string_config_value(const std::string& name) const {
     try {
-        return find_or_throw(_string_config_values, name);
+        return Helper::find_or_throw(_string_config_values, name);
     } catch (...) {
         return "";
     }
 }
 void G13_Manager::set_string_config_value(const std::string& name, const std::string& value) {
-    G13_DBG("set_string_config_value " << name << " = " << repr(value));
+    G13_DBG("set_string_config_value " << name << " = " << Helper::repr(value));
     _string_config_values[name] = value;
 }
 
@@ -219,8 +148,6 @@ static int LIBUSB_CALL hotplug_callback_detach(libusb_context *ctx, libusb_devic
 }
 
 int G13_Manager::run() {
-    static const int vendor_id = 0x045a;
-    static const int product_id = 0x5005;
     static const int class_id = LIBUSB_HOTPLUG_MATCH_ANY;
 
     init_keynames();
@@ -258,14 +185,14 @@ int G13_Manager::run() {
         G13_OUT("Registering hotplug callbacks");
         ret = libusb_hotplug_register_callback(nullptr, LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED,
                                                LIBUSB_HOTPLUG_NO_FLAGS,
-                                               vendor_id, product_id, class_id, hotplug_callback,
+                                               G13_VENDOR_ID, G13_PRODUCT_ID, class_id, hotplug_callback,
                                                nullptr, &hp[0]);
         if (ret != LIBUSB_SUCCESS) {
             G13_ERR("Error registering hotplug callback 0");
         }
         ret = libusb_hotplug_register_callback(nullptr, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT,
-                                               LIBUSB_HOTPLUG_NO_FLAGS, vendor_id,
-                                               product_id, class_id, hotplug_callback_detach, nullptr,
+                                               LIBUSB_HOTPLUG_NO_FLAGS, G13_VENDOR_ID,
+                                               G13_PRODUCT_ID, class_id, hotplug_callback_detach, nullptr,
                                                &hp[1]);
         if (ret != LIBUSB_SUCCESS) {
             G13_ERR("Error registering hotplug callback 1");

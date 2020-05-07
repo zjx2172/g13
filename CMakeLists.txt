@@ -12,16 +12,24 @@ add_executable(pbm2lpbm
 add_executable(g13
         g13.cpp
         g13.hpp
+        g13_action.hpp
+        g13_action.cpp
+        g13_device.hpp
         g13_device.cpp
+        g13_fonts.hpp
         g13_fonts.cpp
+        g13_keys.hpp
         g13_keys.cpp
+        g13_lcd.hpp
         g13_lcd.cpp
+        g13_log.hpp
         g13_log.cpp
         g13_main.cpp
+        g13_stick.hpp
         g13_stick.cpp
         g13_test.py
-        helper.cpp
         helper.hpp
+        helper.cpp
         logo.hpp)
 
 add_custom_target(version

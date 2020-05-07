@@ -18,56 +18,61 @@
          A0.01 A1.01 A2.01 ...
  */
 
-#include "g13.hpp"
+#include <fstream>
+#include <iostream>
+#include <log4cpp/Category.hh>
 #include "logo.hpp"
+#include "g13_device.hpp"
+#include "g13_fonts.hpp"
+#include "g13.hpp"
 
 namespace G13 {
 
-void G13_Device::init_lcd() {
-    int error = libusb_control_transfer(handle, 0, 9, 1, 0, nullptr, 0, 1000);
-    if (error) {
-        G13_LOG(log4cpp::Priority::ERROR << "Error when initializing lcd endpoint");
+    void G13_Device::init_lcd() {
+        int error = libusb_control_transfer(handle, 0, 9, 1, 0, nullptr, 0, 1000);
+        if (error) {
+            G13_LOG(log4cpp::Priority::ERROR << "Error when initializing lcd endpoint");
+        }
     }
-}
 
-void G13_Device::write_lcd(unsigned char* data, size_t size) {
-    init_lcd();
-    if (size != G13_LCD_BUFFER_SIZE) {
-        G13_LOG(log4cpp::Priority::ERROR << "Invalid LCD data size " << size << ", should be "
-                                         << G13_LCD_BUFFER_SIZE);
-        return;
+    void G13_Device::write_lcd(unsigned char* data, size_t size) {
+        init_lcd();
+        if (size != G13_LCD_BUFFER_SIZE) {
+            G13_LOG(log4cpp::Priority::ERROR << "Invalid LCD data size " << size << ", should be "
+                                             << G13_LCD_BUFFER_SIZE);
+            return;
+        }
+        unsigned char buffer[G13_LCD_BUFFER_SIZE + 32];
+        memset(buffer, 0, G13_LCD_BUFFER_SIZE + 32);
+        buffer[0] = 0x03;
+        memcpy(buffer + 32, data, G13_LCD_BUFFER_SIZE);
+        int bytes_written;
+        int error = libusb_interrupt_transfer(handle, LIBUSB_ENDPOINT_OUT | G13_LCD_ENDPOINT, buffer,
+                                              G13_LCD_BUFFER_SIZE + 32, &bytes_written, 1000);
+        if (error) {
+            G13_LOG(log4cpp::Priority::ERROR << "Error when transferring image: " << error << ", "
+                                             << bytes_written << " bytes written");
+        }
     }
-    unsigned char buffer[G13_LCD_BUFFER_SIZE + 32];
-    memset(buffer, 0, G13_LCD_BUFFER_SIZE + 32);
-    buffer[0] = 0x03;
-    memcpy(buffer + 32, data, G13_LCD_BUFFER_SIZE);
-    int bytes_written;
-    int error = libusb_interrupt_transfer(handle, LIBUSB_ENDPOINT_OUT | G13_LCD_ENDPOINT, buffer,
-                                          G13_LCD_BUFFER_SIZE + 32, &bytes_written, 1000);
-    if (error) {
-        G13_LOG(log4cpp::Priority::ERROR << "Error when transferring image: " << error << ", "
-                                         << bytes_written << " bytes written");
+
+    void G13_Device::write_lcd_file(const std::string& filename) {
+        std::filebuf* pbuf;
+        std::ifstream filestr;
+        size_t size;
+
+        filestr.open(filename.c_str());
+        pbuf = filestr.rdbuf();
+
+        size = pbuf->pubseekoff(0, std::ios::end, std::ios::in);
+        pbuf->pubseekpos(0, std::ios::in);
+
+        char buffer[size];
+
+        pbuf->sgetn(buffer, size);
+
+        filestr.close();
+        write_lcd((unsigned char*)buffer, size);
     }
-}
-
-void G13_Device::write_lcd_file(const std::string& filename) {
-    std::filebuf* pbuf;
-    std::ifstream filestr;
-    size_t size;
-
-    filestr.open(filename.c_str());
-    pbuf = filestr.rdbuf();
-
-    size = pbuf->pubseekoff(0, std::ios::end, std::ios::in);
-    pbuf->pubseekpos(0, std::ios::in);
-
-    char buffer[size];
-
-    pbuf->sgetn(buffer, size);
-
-    filestr.close();
-    write_lcd((unsigned char*)buffer, size);
-}
 
 void G13_LCD::image(unsigned char* data, int size) {
     _keypad.write_lcd(data, size);

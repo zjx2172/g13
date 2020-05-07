@@ -1,17 +1,16 @@
 //
 // Created by khampf on 07-05-2020.
 //
-#include "g13.hpp"
-#include "g13_fonts.hpp"
-#include "g13_lcd.hpp"
-#include "g13_stick.hpp"
+#ifndef G13_G13_DEVICE_HPP
+#define G13_G13_DEVICE_HPP
 
 #include <libusb-1.0/libusb.h>
 #include <functional>
 #include <linux/uinput.h>
-
-#ifndef G13_G13_DEVICE_HPP
-#define G13_G13_DEVICE_HPP
+#include <memory>
+#include <map>
+#include "g13_lcd.hpp"
+#include "g13_stick.hpp"
 
 namespace G13 {
 // *************************************************************************
@@ -19,15 +18,19 @@ namespace G13 {
     class G13_Manager;
     class G13_Profile;
     class G13_Action;
-    class G13_Stick;
 
-    // TODO theese should be allright in top include?
+
+    class G13_Font;
+
     typedef std::shared_ptr<G13_Profile> ProfilePtr;
     typedef std::shared_ptr<G13_Action> G13_ActionPtr;
+    typedef std::shared_ptr<G13_Font> FontPtr;
+
     const size_t G13_NUM_KEYS = 40;
 
     class G13_Device {
     public:
+
         G13_Device(G13_Manager &manager, libusb_device_handle *handle, int id);
 
         G13_Manager &manager() { return _manager; }
@@ -92,6 +95,7 @@ namespace G13 {
         // typedef boost::function<void(const char*)> COMMAND_FUNCTION;
         typedef std::function<void(const char *)> COMMAND_FUNCTION;
         typedef std::map<std::string, COMMAND_FUNCTION> CommandFunctionTable;
+
 
     protected:
         void _init_fonts();
