@@ -72,9 +72,11 @@ void G13_Manager::discover_g13s(libusb_device** devs,
                 G13_ERR("Error opening G13 device");
                 return;
             }
-            if (libusb_kernel_driver_active(handle, 0) == 1)
-                if (libusb_detach_kernel_driver(handle, 0) == 0)
+            if (libusb_kernel_driver_active(handle, 0) == 1) {
+                if (libusb_detach_kernel_driver(handle, 0) == 0) {
                     G13_ERR("Kernel driver detached");
+                }
+            }
 
             r = libusb_claim_interface(handle, 0);
             if (r < 0) {
@@ -204,7 +206,7 @@ void G13_Device::cleanup() {
 }
 
 void G13_Manager::cleanup() {
-    G13_OUT("cleaning up");
+    G13_OUT("Cleaning up");
     for (auto & g13 : g13s) {
         g13->cleanup();
         delete g13;
@@ -711,7 +713,7 @@ int G13_Manager::run() {
     libusb_free_device_list(devs, 1);
     G13_OUT("Found " << g13s.size() << " G13s");
     if (g13s.empty()) {
-        G13_ERR("No compatible device found");
+        G13_ERR("Unable to open any device");
         cleanup();
         return 1;
     }
