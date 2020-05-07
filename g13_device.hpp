@@ -141,4 +141,6 @@ inline bool G13_Device::is_set(int key) {
         return old != v;
     }
 } // namespace G13
+
 #endif //G13_G13_DEVICE_HPP
+

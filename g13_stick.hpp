@@ -11,6 +11,7 @@
 namespace G13 {
 
     // *************************************************************************
+
     class G13_StickZone;
 
     enum stick_mode_t {
@@ -57,6 +58,5 @@ namespace G13 {
 
         stick_mode_t _stick_mode;
     };
-
 }
 #endif //G13_G13_STICK_HPP

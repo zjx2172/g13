@@ -52,7 +52,6 @@ using Helper::repr;
 
 class G13_Action;
 class G13_Stick;
-class G13_LCD;
 class G13_Profile;
 class G13_Device;
 class G13_Manager;
@@ -232,67 +231,29 @@ class G13_Profile {
     void _init_keys();
 };
 
-class G13_FontChar {
-   public:
-    static const int CHAR_BUF_SIZE = 8;
-    enum FONT_FLAGS { FF_ROTATE = 0x01 };
-
-    G13_FontChar() {
-        memset(bits_regular, 0, CHAR_BUF_SIZE);
-        memset(bits_inverted, 0, CHAR_BUF_SIZE);
-    }
-    void set_character(unsigned char* data, int width, unsigned flags);
-    unsigned char bits_regular[CHAR_BUF_SIZE]{};
-    unsigned char bits_inverted[CHAR_BUF_SIZE]{};
-};
-
-class G13_Font {
-   public:
-    G13_Font();
-    explicit G13_Font(const std::string& name, unsigned int width = 8);
-
-    void set_character(unsigned int c, unsigned char* data);
-
-    template <class ARRAY_T, class FLAGST>
-    void install_font(ARRAY_T& data, FLAGST flags, int first = 0);
-
-    [[nodiscard]] const std::string& name() const { return _name; }
-    [[nodiscard]] unsigned int width() const { return _width; }
-
-    const G13_FontChar& char_data(unsigned int x) { return _chars[x]; }
-
-   protected:
-    std::string _name;
-    unsigned int _width;
-
-    G13_FontChar _chars[256];
-
-    // unsigned char font_basic[256][8];
-    // unsigned char font_inverted[256][8];
-};
 
 
 // *************************************************************************
 
-class G13_StickZone : public G13_Actionable<G13_Stick> {
-   public:
-    G13_StickZone(G13_Stick&, const std::string& name, const G13_ZoneBounds&, G13_ActionPtr = nullptr);
+    class G13_StickZone : public G13_Actionable<G13_Stick> {
+    public:
+        G13_StickZone(G13_Stick&, const std::string& name, const G13_ZoneBounds&, G13_ActionPtr = nullptr);
 
-    bool operator==(const G13_StickZone& other) const { return _name == other._name; }
+        bool operator==(const G13_StickZone& other) const { return _name == other._name; }
 
-    void dump(std::ostream&) const;
+        void dump(std::ostream&) const;
 
-    // void parse_key(unsigned char* byte, G13_Device* g13);
-    void test(const G13_ZoneCoord& loc);
-    void set_bounds(const G13_ZoneBounds& bounds) { _bounds = bounds; }
+        // void parse_key(unsigned char* byte, G13_Device* g13);
+        void test(const G13_ZoneCoord& loc);
+        void set_bounds(const G13_ZoneBounds& bounds) { _bounds = bounds; }
 
-   protected:
-    bool _active;
+    protected:
+        bool _active;
 
-    G13_ZoneBounds _bounds;
-};
+        G13_ZoneBounds _bounds;
+    };
 
-typedef std::shared_ptr<G13_StickZone> G13_StickZonePtr;
+    typedef std::shared_ptr<G13_StickZone> G13_StickZonePtr;
 
 // *************************************************************************
 

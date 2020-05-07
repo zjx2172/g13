@@ -12,6 +12,7 @@ add_executable(pbm2lpbm
 add_executable(g13
         g13.cpp
         g13.hpp
+        g13_device.cpp
         g13_fonts.cpp
         g13_keys.cpp
         g13_lcd.cpp
