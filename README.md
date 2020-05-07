@@ -1,13 +1,16 @@
 # Userspace driver for the G13
 
+## This is a 100% boost free version
+You no longer need to rebuild this every other week when boost updates
+
 ## Installation
 
-Make sure you have boost and libusb-1.0 installed.
+Make sure you have ~~boost~~ log4cpp, libevdev and libusb-1.0 installed.
 
 ### For Ubuntu (15.10)
 
 * ***sudo apt-get install libusb-1.0-0-dev***
-* ***sudo apt-get install libboost-all-dev***
+* ~~***sudo apt-get install libboost-all-dev***~~
 
 
 ### Build
