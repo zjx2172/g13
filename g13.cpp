@@ -79,6 +79,8 @@ void G13_Manager::discover_g13s(libusb_device** devs,
             r = libusb_claim_interface(handle, 0);
             if (r < 0) {
                 G13_ERR("Cannot Claim Interface");
+                libusb_release_interface(handle, 0);
+                libusb_close(handle);
                 return;
             }
             g13s.push_back(new G13_Device(*this, handle, g13s.size()));
@@ -693,6 +695,7 @@ int G13_Manager::run() {
     ret = libusb_init(&ctx);
     if (ret < 0) {
         G13_ERR("Initialization error: " << ret);
+        cleanup();
         return 1;
     }
 
@@ -700,6 +703,7 @@ int G13_Manager::run() {
     cnt = libusb_get_device_list(ctx, &devs);
     if (cnt < 0) {
         G13_ERR("Error while getting device list");
+        cleanup();
         return 1;
     }
 
@@ -707,6 +711,8 @@ int G13_Manager::run() {
     libusb_free_device_list(devs, 1);
     G13_OUT("Found " << g13s.size() << " G13s");
     if (g13s.empty()) {
+        G13_ERR("No compatible device found");
+        cleanup();
         return 1;
     }
 
