@@ -24,7 +24,7 @@
 namespace G13 {
 
 void G13_Device::init_lcd() {
-    int error = libusb_control_transfer(handle, 0, 9, 1, 0, 0, 0, 1000);
+    int error = libusb_control_transfer(handle, 0, 9, 1, 0, nullptr, 0, 1000);
     if (error) {
         G13_LOG(log4cpp::Priority::ERROR << "Error when initializing lcd endpoint");
     }
@@ -79,6 +79,7 @@ G13_LCD::G13_LCD(G13_Device& keypad) : _keypad(keypad) {
     text_mode = 0;
 }
 
+/*
 void G13_LCD::image_setpixel(unsigned row, unsigned col) {
     unsigned offset = image_byte_offset(row, col);  // col + (row /8 ) * BYTES_PER_ROW * 8;
     unsigned char mask = 1 << ((row)&7);
@@ -91,7 +92,9 @@ void G13_LCD::image_setpixel(unsigned row, unsigned col) {
 
     image_buf[offset] |= mask;
 }
+*/
 
+/*
 void G13_LCD::image_clearpixel(unsigned row, unsigned col) {
     unsigned offset = image_byte_offset(row, col);  // col + (row /8 ) * BYTES_PER_ROW * 8;
     unsigned char mask = 1 << ((row)&7);
@@ -103,6 +106,7 @@ void G13_LCD::image_clearpixel(unsigned row, unsigned col) {
     }
     image_buf[offset] &= ~mask;
 }
+*/
 
 void G13_LCD::write_pos(int row, int col) {
     cursor_row = row;
@@ -114,7 +118,7 @@ void G13_LCD::write_pos(int row, int col) {
         cursor_row = 0;
     }
 }
-void G13_LCD::write_char(char c, int row, int col) {
+void G13_LCD::write_char(char c, unsigned int row, unsigned int col) {
     if (row == -1) {
         row = cursor_row;
         col = cursor_col;
@@ -162,8 +166,9 @@ void G13_LCD::write_string(const char* str) {
     image_send();
 }
 
+/*
 void G13_LCD::image_test(int x, int y) {
-    int row = 0, col = 0;
+    int row, col;
     if (y >= 0) {
         image_setpixel(x, y);
     } else {
@@ -192,5 +197,6 @@ void G13_LCD::image_test(int x, int y) {
     }
     image_send();
 }
+*/
 
 }  // namespace G13

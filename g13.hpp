@@ -6,12 +6,13 @@
 // clang-format on
 #include <libusb-1.0/libusb.h>
 #include <linux/uinput.h>
-#include <signal.h>
+#include <csignal>
 #include <unistd.h>
 #include <fstream>
 #include <functional>
 #include <log4cpp/Category.hh>
 #include <memory>
+#include <utility>
 
 // *************************************************************************
 
@@ -22,10 +23,10 @@ namespace G13 {
 #define G13_DBG(message) log4cpp::Category::getRoot() << log4cpp::Priority::DEBUG << message
 #define G13_OUT(message) log4cpp::Category::getRoot() << log4cpp::Priority::INFO << message
 
-const size_t G13_INTERFACE = 0;
+// const size_t G13_INTERFACE = 0;
 const size_t G13_KEY_ENDPOINT = 1;
 const size_t G13_LCD_ENDPOINT = 2;
-const size_t G13_KEY_READ_TIMEOUT = 0;
+// const size_t G13_KEY_READ_TIMEOUT = 0;
 const size_t G13_VENDOR_ID = 0x046d;
 const size_t G13_PRODUCT_ID = 0xc21c;
 const size_t G13_REPORT_SIZE = 8;
@@ -41,7 +42,7 @@ const size_t G13_LCD_TEXT_ROWS = 160 / G13_LCD_TEXT_CHEIGHT;
 
 enum stick_mode_t {
     STICK_ABSOLUTE,
-    STICK_RELATIVE,
+    // STICK_RELATIVE,
     STICK_KEYS,
     STICK_CALCENTER,
     STICK_CALBOUNDS,
@@ -52,6 +53,12 @@ typedef int LINUX_KEY_VALUE;
 const LINUX_KEY_VALUE BAD_KEY_VALUE = -1;
 
 typedef int G13_KEY_INDEX;
+
+// Initialized in g13_keys.cpp
+static std::vector<std::string> G13_KEY_STRINGS;
+static std::vector<std::string> G13_NONPARSED_KEYS;
+static std::vector<std::string> G13_SYMBOLS;
+static std::vector<std::string> G13_BTN_SEQ;
 
 // *************************************************************************
 
@@ -69,9 +76,9 @@ class G13_Manager;
 
 class G13_CommandException : public std::exception {
    public:
-    G13_CommandException(const std::string& reason) : _reason(reason) {}
-    virtual ~G13_CommandException() throw() {}
-    virtual const char* what() const throw() { return _reason.c_str(); }
+    explicit G13_CommandException(std::string  reason) : _reason(std::move(reason)) {}
+    ~G13_CommandException() noexcept override = default;
+    [[nodiscard]] const char* what() const noexcept override { return _reason.c_str(); }
 
     std::string _reason;
 };
@@ -83,7 +90,7 @@ class G13_CommandException : public std::exception {
  */
 class G13_Action {
    public:
-    G13_Action(G13_Device& keypad) : _keypad(keypad) {}
+    explicit G13_Action(G13_Device& keypad) : _keypad(keypad) {}
     virtual ~G13_Action();
 
     virtual void act(G13_Device&, bool is_down) = 0;
@@ -92,10 +99,11 @@ class G13_Action {
     void act(bool is_down) { act(keypad(), is_down); }
 
     G13_Device& keypad() { return _keypad; }
-    const G13_Device& keypad() const { return _keypad; }
+
+    // [[maybe_unused]] [[nodiscard]] const G13_Device& keypad() const { return _keypad; }
 
     G13_Manager& manager();
-    const G13_Manager& manager() const;
+    [[nodiscard]] const G13_Manager& manager() const;
 
    private:
     G13_Device& _keypad;
@@ -107,10 +115,10 @@ class G13_Action {
 class G13_Action_Keys : public G13_Action {
    public:
     G13_Action_Keys(G13_Device& keypad, const std::string& keys);
-    virtual ~G13_Action_Keys();
+    ~G13_Action_Keys() override;
 
-    virtual void act(G13_Device&, bool is_down);
-    virtual void dump(std::ostream&) const;
+    void act(G13_Device&, bool is_down) override;
+    void dump(std::ostream&) const override;
 
     std::vector<LINUX_KEY_VALUE> _keys;
 };
@@ -121,10 +129,10 @@ class G13_Action_Keys : public G13_Action {
 class G13_Action_PipeOut : public G13_Action {
    public:
     G13_Action_PipeOut(G13_Device& keypad, const std::string& out);
-    virtual ~G13_Action_PipeOut();
+    ~G13_Action_PipeOut() override;
 
-    virtual void act(G13_Device&, bool is_down);
-    virtual void dump(std::ostream&) const;
+    void act(G13_Device&, bool is_down) override;
+    void dump(std::ostream&) const override;
 
     std::string _out;
 };
@@ -134,11 +142,11 @@ class G13_Action_PipeOut : public G13_Action {
  */
 class G13_Action_Command : public G13_Action {
    public:
-    G13_Action_Command(G13_Device& keypad, const std::string& cmd);
-    virtual ~G13_Action_Command();
+    G13_Action_Command(G13_Device& keypad, std::string cmd);
+    ~G13_Action_Command() override;
 
-    virtual void act(G13_Device&, bool is_down);
-    virtual void dump(std::ostream&) const;
+    void act(G13_Device&, bool is_down) override;
+    void dump(std::ostream&) const override;
 
     std::string _cmd;
 };
@@ -149,16 +157,16 @@ typedef std::shared_ptr<G13_Action> G13_ActionPtr;
 template <class PARENT_T>
 class G13_Actionable {
    public:
-    G13_Actionable(PARENT_T& parent_arg, const std::string& name)
-        : _parent_ptr(&parent_arg), _name(name) {}
-    virtual ~G13_Actionable() { _parent_ptr = 0; }
+    G13_Actionable(PARENT_T& parent_arg, std::string  name)
+        : _parent_ptr(&parent_arg), _name(std::move(name)) {}
+    virtual ~G13_Actionable() { _parent_ptr = nullptr; }
 
-    G13_ActionPtr action() const { return _action; }
-    const std::string& name() const { return _name; }
-    PARENT_T& parent() { return *_parent_ptr; }
-    const PARENT_T& parent() const { return *_parent_ptr; }
-    G13_Manager& manager() { return _parent_ptr->manager(); }
-    const G13_Manager& manager() const { return _parent_ptr->manager(); }
+    [[nodiscard]] G13_ActionPtr action() const { return _action; }
+    [[nodiscard]] const std::string& name() const { return _name; }
+    // PARENT_T& parent() { return *_parent_ptr; }
+    // [[nodiscard]] const PARENT_T& parent() const { return *_parent_ptr; }
+    // G13_Manager& manager() { return _parent_ptr->manager(); }
+    [[nodiscard]] const G13_Manager& manager() const { return _parent_ptr->manager(); }
 
     virtual void set_action(const G13_ActionPtr& action) { _action = action; }
 
@@ -177,13 +185,13 @@ class G13_Actionable {
 class G13_Key : public G13_Actionable<G13_Profile> {
    public:
     void dump(std::ostream& o) const;
-    G13_KEY_INDEX index() const { return _index.index; }
+    [[nodiscard]] G13_KEY_INDEX index() const { return _index.index; }
 
-    void parse_key(unsigned char* byte, G13_Device* g13);
+    void parse_key(const unsigned char* byte, G13_Device* g13);
 
    protected:
     struct KeyIndex {
-        KeyIndex(int key) : index(key), offset(key / 8), mask(1 << (key % 8)) {}
+        explicit KeyIndex(int key) : index(key), offset(key / 8u), mask(1u << (key % 8u)) {}
 
         int index;
         unsigned char offset;
@@ -215,12 +223,12 @@ class G13_Key : public G13_Actionable<G13_Profile> {
  */
 class G13_Profile {
    public:
-    G13_Profile(G13_Device& keypad, const std::string& name_arg)
-        : _keypad(keypad), _name(name_arg) {
+    G13_Profile(G13_Device& keypad, std::string  name_arg)
+        : _keypad(keypad), _name(std::move(name_arg)) {
         _init_keys();
     }
-    G13_Profile(const G13_Profile& other, const std::string& name_arg)
-        : _keypad(other._keypad), _name(name_arg), _keys(other._keys) {}
+    G13_Profile(const G13_Profile& other, std::string  name_arg)
+        : _keypad(other._keypad), _name(std::move(name_arg)), _keys(other._keys) {}
 
     // search key by G13 keyname
     G13_Key* find_key(const std::string& keyname);
@@ -228,9 +236,9 @@ class G13_Profile {
     void dump(std::ostream& o) const;
 
     void parse_keys(unsigned char* buf);
-    const std::string& name() const { return _name; }
+    [[nodiscard]] const std::string& name() const { return _name; }
 
-    const G13_Manager& manager() const;
+    [[nodiscard]] const G13_Manager& manager() const;
 
    protected:
     G13_Device& _keypad;
@@ -252,22 +260,22 @@ class G13_FontChar {
         memset(bits_inverted, 0, CHAR_BUF_SIZE);
     }
     void set_character(unsigned char* data, int width, unsigned flags);
-    unsigned char bits_regular[CHAR_BUF_SIZE];
-    unsigned char bits_inverted[CHAR_BUF_SIZE];
+    unsigned char bits_regular[CHAR_BUF_SIZE]{};
+    unsigned char bits_inverted[CHAR_BUF_SIZE]{};
 };
 
 class G13_Font {
    public:
     G13_Font();
-    G13_Font(const std::string& name, unsigned int width = 8);
+    explicit G13_Font(const std::string& name, unsigned int width = 8);
 
     void set_character(unsigned int c, unsigned char* data);
 
     template <class ARRAY_T, class FLAGST>
     void install_font(ARRAY_T& data, FLAGST flags, int first = 0);
 
-    const std::string& name() const { return _name; }
-    unsigned int width() const { return _width; }
+    [[nodiscard]] const std::string& name() const { return _name; }
+    [[nodiscard]] unsigned int width() const { return _width; }
 
     const G13_FontChar& char_data(unsigned int x) { return _chars[x]; }
 
@@ -284,7 +292,7 @@ typedef std::shared_ptr<G13_Font> FontPtr;
 
 class G13_LCD {
    public:
-    G13_LCD(G13_Device& keypad);
+    explicit G13_LCD(G13_Device& keypad);
 
     G13_Device& _keypad;
     unsigned char image_buf[G13_LCD_BUF_SIZE + 8];
@@ -295,17 +303,17 @@ class G13_LCD {
     void image(unsigned char* data, int size);
     void image_send() { image(image_buf, G13_LCD_BUF_SIZE); }
 
-    void image_test(int x, int y);
+    // void image_test(int x, int y);
     void image_clear() { memset(image_buf, 0, G13_LCD_BUF_SIZE); }
 
-    unsigned image_byte_offset(unsigned row, unsigned col) {
+    static unsigned image_byte_offset(unsigned row, unsigned col) {
         return col + (row / 8) * G13_LCD_BYTES_PER_ROW * 8;
     }
 
-    void image_setpixel(unsigned row, unsigned col);
-    void image_clearpixel(unsigned row, unsigned col);
+    // void image_setpixel(unsigned row, unsigned col);
+    // void image_clearpixel(unsigned row, unsigned col);
 
-    void write_char(char c, int row = -1, int col = -1);
+    void write_char(char c, unsigned int row = -1, unsigned int col = -1);
     void write_string(const char* str);
     void write_pos(int row, int col);
 };
@@ -320,13 +328,13 @@ typedef Helper::Bounds<double> G13_ZoneBounds;
 
 class G13_StickZone : public G13_Actionable<G13_Stick> {
    public:
-    G13_StickZone(G13_Stick&, const std::string& name, const G13_ZoneBounds&, G13_ActionPtr = 0);
+    G13_StickZone(G13_Stick&, const std::string& name, const G13_ZoneBounds&, G13_ActionPtr = nullptr);
 
     bool operator==(const G13_StickZone& other) const { return _name == other._name; }
 
     void dump(std::ostream&) const;
 
-    void parse_key(unsigned char* byte, G13_Device* g13);
+    // void parse_key(unsigned char* byte, G13_Device* g13);
     void test(const G13_ZoneCoord& loc);
     void set_bounds(const G13_ZoneBounds& bounds) { _bounds = bounds; }
 
@@ -342,7 +350,7 @@ typedef std::shared_ptr<G13_StickZone> G13_StickZonePtr;
 
 class G13_Stick {
    public:
-    G13_Stick(G13_Device& keypad);
+    explicit G13_Stick(G13_Device& keypad);
 
     void parse_joystick(unsigned char* buf);
 
@@ -350,7 +358,7 @@ class G13_Stick {
     G13_StickZone* zone(const std::string&, bool create = false);
     void remove_zone(const G13_StickZone& zone);
 
-    const std::vector<G13_StickZone>& zones() const { return _zones; }
+    [[nodiscard]] const std::vector<G13_StickZone>& zones() const { return _zones; }
 
     void dump(std::ostream&) const;
 
@@ -376,12 +384,12 @@ class G13_Device {
     G13_Device(G13_Manager& manager, libusb_device_handle* handle, int id);
 
     G13_Manager& manager() { return _manager; }
-    const G13_Manager& manager() const { return _manager; }
+    [[nodiscard]] const G13_Manager& manager() const { return _manager; }
 
     G13_LCD& lcd() { return _lcd; }
-    const G13_LCD& lcd() const { return _lcd; }
+    [[nodiscard]] const G13_LCD& lcd() const { return _lcd; }
     G13_Stick& stick() { return _stick; }
-    const G13_Stick& stick() const { return _stick; }
+    [[nodiscard]] const G13_Stick& stick() const { return _stick; }
 
     FontPtr switch_to_font(const std::string& name);
     void switch_to_profile(const std::string& name);
@@ -402,7 +410,7 @@ class G13_Device {
     void set_mode_leds(int leds);
 
     void send_event(int type, int code, int val);
-    void write_output_pipe(const std::string& out);
+    void write_output_pipe(const std::string& out) const;
 
     void write_lcd(unsigned char* data, size_t size);
 
@@ -417,7 +425,7 @@ class G13_Device {
     G13_Font& current_font() { return *_current_font; }
     G13_Profile& current_profile() { return *_current_profile; }
 
-    int id_within_manager() const { return _id_within_manager; }
+    [[nodiscard]] int id_within_manager() const { return _id_within_manager; }
 
     // typedef boost::function<void(const char*)> COMMAND_FUNCTION;
     typedef std::function<void(const char*)> COMMAND_FUNCTION;
@@ -431,7 +439,7 @@ class G13_Device {
     // typedef void (COMMAND_FUNCTION)( G13_Device*, const char *, const char * );
     CommandFunctionTable _command_table;
 
-    struct timeval _event_time;
+    // struct timeval _event_time;
     struct input_event _event;
 
     int _id_within_manager;
@@ -467,19 +475,19 @@ class G13_Manager {
    public:
     G13_Manager();
 
-    G13_KEY_INDEX find_g13_key_value(const std::string& keyname) const;
-    std::string find_g13_key_name(G13_KEY_INDEX) const;
+    [[nodiscard]] G13_KEY_INDEX find_g13_key_value(const std::string& keyname) const;
+    [[nodiscard]] std::string find_g13_key_name(G13_KEY_INDEX) const;
 
-    LINUX_KEY_VALUE find_input_key_value(const std::string& keyname) const;
-    std::string find_input_key_name(LINUX_KEY_VALUE) const;
+    [[nodiscard]] LINUX_KEY_VALUE find_input_key_value(const std::string& keyname) const;
+    [[nodiscard]] std::string find_input_key_name(LINUX_KEY_VALUE) const;
 
     void set_logo(const std::string& fn) { logo_filename = fn; }
     int run();
 
-    std::string string_config_value(const std::string& name) const;
+    [[nodiscard]] std::string string_config_value(const std::string& name) const;
     void set_string_config_value(const std::string& name, const std::string& val);
 
-    std::string make_pipe_name(G13_Device* d, bool is_input);
+    std::string make_pipe_name(G13_Device* d, bool is_input) const;
 
     void start_logging();
     void set_log_level(log4cpp::Priority::PriorityLevel lvl);
@@ -520,9 +528,11 @@ inline const G13_Manager& G13_Action::manager() const {
     return _keypad.manager();
 }
 
+/*
 inline bool G13_Device::is_set(int key) {
     return keys[key];
 }
+*/
 
 inline bool G13_Device::update(int key, bool v) {
     bool old = keys[key];
