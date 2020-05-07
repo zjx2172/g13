@@ -57,10 +57,10 @@ void string_repr_out::write_on(std::ostream& o) const {
                 o << "\\" << *cp;
                 break;
             default: {
-                char c = *cp;
+                unsigned char c = *cp;
                 if (c < 32) {
-                    char hi = '0' + (c & 0x0f);
-                    char lo = '0' + ((c >> 4) & 0x0f);
+                    unsigned char hi = '0' + (c & 0x0fu);
+                    unsigned char lo = '0' + ((unsigned char)(c >> 4u) & 0x0fu);
                     o << "\\x" << hi << lo;
                 } else {
                     o << c;
@@ -71,8 +71,8 @@ void string_repr_out::write_on(std::ostream& o) const {
     }
 
     o << "\"";
-};
+}
 
-};  // namespace Helper
+} // namespace Helper
 
 // *************************************************************************

@@ -5,6 +5,7 @@
 // TODO: check out why g13.h needs to be included before libevdev
 // clang-format off
 #include "g13.hpp"
+#include "g13_device.hpp"
 #include <libevdev-1.0/libevdev/libevdev.h>
 // clang-format on
 

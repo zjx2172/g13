@@ -13,8 +13,6 @@ namespace G13 {
 
 // *************************************************************************
 
-// TODO: lots of cleaning to do
-
 void G13_Device::send_event(int type, int code, int val) {
     memset(&_event, 0, sizeof(_event));
     gettimeofday(&_event.time, 0);
@@ -234,13 +232,15 @@ int G13_Device::read_keys() {
     int error = libusb_interrupt_transfer(handle, LIBUSB_ENDPOINT_IN | G13_KEY_ENDPOINT, buffer,
                                           G13_REPORT_SIZE, &size, 100);
 
-    if (error && error != LIBUSB_ERROR_TIMEOUT) {
+    if (error && error != LIBUSB_ERROR_TIMEOUT && error != LIBUSB_ERROR_NO_DEVICE) {
         G13_ERR("Error while reading keys: " << error << " (" << describe_libusb_error_code(error)
                                              << ")");
+/* handled by hotplug
         if (error == LIBUSB_ERROR_NO_DEVICE) {
             //    G13_LOG( error, "Stopping daemon" );
             return -1;
         }
+*/
     }
     if (size == G13_REPORT_SIZE) {
         parse_joystick(buffer);
@@ -646,7 +646,9 @@ G13_Manager::G13_Manager() : ctx(nullptr), devs(nullptr) {}
 // *************************************************************************
 
 bool G13_Manager::running = true;
-void G13_Manager::set_stop(int) {
+
+void G13_Manager::signal_handler(int signal) {
+    G13_OUT("Caught signal " << signal << " (" << strsignal(signal) << ")");
     running = false;
 }
 
@@ -687,7 +689,45 @@ std::string G13_Manager::make_pipe_name(G13_Device* d, bool is_input) const {
     }
 }
 
+static int LIBUSB_CALL hotplug_callback(struct libusb_context *ctx, struct libusb_device *dev,
+                      libusb_hotplug_event event, void *user_data) {
+    static libusb_device_handle *handle = NULL;
+    struct libusb_device_descriptor desc;
+    int rc;
+
+    (void)libusb_get_device_descriptor(dev, &desc);
+    if (LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED == event) {
+        rc = libusb_open(dev, &handle);
+        if (LIBUSB_SUCCESS != rc) {
+            fprintf(stderr,"Could not open USB device\n");
+        }
+    } else if (LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT == event) {
+        if (handle) {
+            libusb_close(handle);
+            handle = NULL;
+        }
+    } else {
+        fprintf(stderr, "Unhandled event %d", event);
+    }
+    return 0;
+}
+
+static int LIBUSB_CALL hotplug_callback_detach(libusb_context *ctx, libusb_device *dev, libusb_hotplug_event event, void *user_data)
+{
+    (void)ctx;
+    (void)dev;
+    (void)event;
+    (void)user_data;
+
+    // running = false;
+    return 0;
+}
+
 int G13_Manager::run() {
+    static const int vendor_id = 0x045a;
+    static const int product_id = 0x5005;
+    static const int class_id = LIBUSB_HOTPLUG_MATCH_ANY;
+
     init_keynames();
     display_keys();
 
@@ -695,18 +735,18 @@ int G13_Manager::run() {
     int ret;
 
     ret = libusb_init(&ctx);
-    if (ret < 0) {
+    if (ret != LIBUSB_SUCCESS) {
         G13_ERR("Initialization error: " << ret);
         cleanup();
-        return 1;
+        return EXIT_FAILURE;
     }
-
     libusb_set_option(ctx, LIBUSB_OPTION_LOG_LEVEL, 3);
+
     cnt = libusb_get_device_list(ctx, &devs);
     if (cnt < 0) {
         G13_ERR("Error while getting device list");
         cleanup();
-        return 1;
+        return EXIT_FAILURE;
     }
 
     discover_g13s(devs, cnt, g13s);
@@ -715,13 +755,34 @@ int G13_Manager::run() {
     if (g13s.empty()) {
         G13_ERR("Unable to open any device");
         cleanup();
-        return 1;
+        return EXIT_FAILURE;
+    }
+
+    libusb_hotplug_callback_handle hp[2];
+    if (libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) {
+        G13_OUT("Registering hotplug callbacks");
+        ret = libusb_hotplug_register_callback(nullptr, LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED,
+                                               LIBUSB_HOTPLUG_NO_FLAGS,
+                                               vendor_id, product_id, class_id, hotplug_callback,
+                                               nullptr, &hp[0]);
+        if (ret != LIBUSB_SUCCESS) {
+            G13_ERR("Error registering hotplug callback 0");
+        }
+        ret = libusb_hotplug_register_callback(nullptr, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT,
+                                               LIBUSB_HOTPLUG_NO_FLAGS, vendor_id,
+                                               product_id, class_id, hotplug_callback_detach, nullptr,
+                                               &hp[1]);
+        if (ret != LIBUSB_SUCCESS) {
+            G13_ERR("Error registering hotplug callback 1");
+        }
     }
 
     for (auto & g13 : g13s) {
         g13->register_context(ctx);
     }
-    signal(SIGINT, set_stop);
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
+
     if (!g13s.empty() && !logo_filename.empty()) {
         g13s[0]->write_lcd_file(logo_filename);
     }
@@ -745,9 +806,9 @@ int G13_Manager::run() {
                 }
             }
     } while (running);
-    cleanup();
 
+    cleanup();
     G13_OUT("Exit");
-    return 0;
+    return EXIT_SUCCESS;
 }
 }  // namespace G13
