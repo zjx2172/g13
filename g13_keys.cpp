@@ -128,7 +128,7 @@ namespace G13 {
     }
 
     LINUX_KEY_VALUE
-    G13_Manager::find_g13_key_value(const std::string &keyname) const {
+    G13_Manager::find_g13_key_value(const std::string &keyname) {
         auto i = g13_name_to_key.find(keyname);
         if (i == g13_name_to_key.end()) {
             return BAD_KEY_VALUE;
@@ -150,7 +150,7 @@ namespace G13 {
         return i->second;
     }
 
-    std::string G13_Manager::find_input_key_name(LINUX_KEY_VALUE v) const {
+    std::string G13_Manager::find_input_key_name(LINUX_KEY_VALUE v) {
         try {
             return Helper::find_or_throw(input_key_to_name, v);
         } catch (...) {
@@ -158,7 +158,7 @@ namespace G13 {
         }
     }
 
-    std::string G13_Manager::find_g13_key_name(G13_KEY_INDEX v) const {
+    std::string G13_Manager::find_g13_key_name(G13_KEY_INDEX v) {
         try {
             return Helper::find_or_throw(g13_key_to_name, v);
         } catch (...) {

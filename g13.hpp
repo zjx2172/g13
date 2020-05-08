@@ -9,11 +9,6 @@
 
 // *************************************************************************
 
-//using Helper::find_or_throw;
-//using Helper::repr;
-
-// *************************************************************************
-
 namespace G13 {
 
 
@@ -76,7 +71,7 @@ class G13_Key : public G13_Actionable<G13_Profile> {
         : G13_Actionable<G13_Profile>(mode, key.name()),
           _index(key._index),
           _should_parse(key._should_parse) {
-        set_action(key.action());
+        set_action(key.action());   // TODO: do not invoke virtual member function from ctor
     }
 
     KeyIndex _index;
@@ -147,11 +142,11 @@ class G13_Manager {
    public:
     G13_Manager();
 
-    [[nodiscard]] G13_KEY_INDEX find_g13_key_value(const std::string& keyname) const;
-    [[nodiscard]] std::string find_g13_key_name(G13_KEY_INDEX) const;
+    [[nodiscard]] static G13_KEY_INDEX find_g13_key_value(const std::string& keyname) ;
+    [[nodiscard]] static std::string find_g13_key_name(G13_KEY_INDEX) ;
 
     [[nodiscard]] LINUX_KEY_VALUE find_input_key_value(const std::string& keyname) const;
-    [[nodiscard]] std::string find_input_key_name(LINUX_KEY_VALUE) const;
+    [[nodiscard]] static std::string find_input_key_name(LINUX_KEY_VALUE) ;
 
     void set_logo(const std::string& fn) { logo_filename = fn; }
     int run();
@@ -162,11 +157,12 @@ class G13_Manager {
     std::string make_pipe_name(G13_Device* d, bool is_input) const;
 
     void start_logging();
-    void set_log_level(log4cpp::Priority::PriorityLevel lvl);
+
+    [[maybe_unused]] void set_log_level(log4cpp::Priority::PriorityLevel lvl);
     void set_log_level(const std::string&);
 
    protected:
-    void init_keynames();
+    static void init_keynames();
     void display_keys();
     void discover_g13s(libusb_device** devs, ssize_t count, std::vector<G13_Device*>& g13s);
     void cleanup();
@@ -184,6 +180,7 @@ class G13_Manager {
 };
 
     // *************************************************************************
+
     [[maybe_unused]]
     inline const G13_Manager& G13_Profile::manager() const {
         return _keypad.manager();

@@ -19,7 +19,7 @@ void G13_Manager::start_logging() {
     //    sub1.addAppender(appender2);
 }
 
-void G13_Manager::set_log_level(log4cpp::Priority::PriorityLevel lvl) {
+    [[maybe_unused]] void G13_Manager::set_log_level(log4cpp::Priority::PriorityLevel lvl) {
     G13_OUT("set log level to " << lvl);
 }
 

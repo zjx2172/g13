@@ -117,25 +117,27 @@ std::string G13_Manager::make_pipe_name(G13_Device* d, bool is_input) const {
 
 static int LIBUSB_CALL hotplug_callback(struct libusb_context *ctx, struct libusb_device *dev,
                       libusb_hotplug_event event, void *user_data) {
-    static libusb_device_handle *handle = NULL;
+    static libusb_device_handle *handle = nullptr;
     struct libusb_device_descriptor desc;
-    int rc;
+    int ret;
 
+/*
     (void)libusb_get_device_descriptor(dev, &desc);
     if (LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED == event) {
-        rc = libusb_open(dev, &handle);
-        if (LIBUSB_SUCCESS != rc) {
+        ret = libusb_open(dev, &handle);
+        if (LIBUSB_SUCCESS != ret) {
             fprintf(stderr,"Could not open USB device\n");
         }
     } else if (LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT == event) {
         if (handle) {
             libusb_close(handle);
-            handle = NULL;
+            handle = nullptr;
         }
     } else {
         fprintf(stderr, "Unhandled event %d", event);
     }
-    return 0;
+*/
+    return 1;
 }
 
 static int LIBUSB_CALL hotplug_callback_detach(libusb_context *ctx, libusb_device *dev, libusb_hotplug_event event, void *user_data)
@@ -146,7 +148,7 @@ static int LIBUSB_CALL hotplug_callback_detach(libusb_context *ctx, libusb_devic
     (void)user_data;
 
     // running = false;
-    return 0;
+    return 1;
 }
 
 int G13_Manager::run() {
@@ -184,15 +186,16 @@ int G13_Manager::run() {
     libusb_hotplug_callback_handle hp[2];
     if (libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) {
         G13_OUT("Registering hotplug callbacks");
+
         ret = libusb_hotplug_register_callback(nullptr, LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED,
-                                               LIBUSB_HOTPLUG_NO_FLAGS,
+                                               LIBUSB_HOTPLUG_ENUMERATE,
                                                G13_VENDOR_ID, G13_PRODUCT_ID, class_id, hotplug_callback,
                                                nullptr, &hp[0]);
         if (ret != LIBUSB_SUCCESS) {
             G13_ERR("Error registering hotplug callback 0");
         }
         ret = libusb_hotplug_register_callback(nullptr, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT,
-                                               LIBUSB_HOTPLUG_NO_FLAGS, G13_VENDOR_ID,
+                                               LIBUSB_HOTPLUG_ENUMERATE, G13_VENDOR_ID,
                                                G13_PRODUCT_ID, class_id, hotplug_callback_detach, nullptr,
                                                &hp[1]);
         if (ret != LIBUSB_SUCCESS) {
