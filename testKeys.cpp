@@ -40,6 +40,7 @@ class MockProfile : public G13::G13_Profile {
 
 TEST(G13Key, g13_key_maps_to_value) {
     MockManager manager;
+    
     EXPECT_EQ(manager.find_g13_key_value("G1"), 0);
     EXPECT_EQ(manager.find_g13_key_value("G22"), 21);
     // G13::G13_Device device = MockDevice(manager);

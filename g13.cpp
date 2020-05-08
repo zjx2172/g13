@@ -65,7 +65,9 @@ void G13_Manager::cleanup() {
 }
 
 
-G13_Manager::G13_Manager() : ctx(nullptr), devs(nullptr) {}
+G13_Manager::G13_Manager() : ctx(nullptr), devs(nullptr) {
+    init_keynames();
+}
 
 // *************************************************************************
 
@@ -150,7 +152,6 @@ static int LIBUSB_CALL hotplug_callback_detach(libusb_context *ctx, libusb_devic
 int G13_Manager::run() {
     static const int class_id = LIBUSB_HOTPLUG_MATCH_ANY;
 
-    init_keynames();
     display_keys();
 
     ssize_t cnt;
