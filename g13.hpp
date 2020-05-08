@@ -27,10 +27,7 @@ const size_t G13_PRODUCT_ID = 0xc21c;
 const size_t G13_REPORT_SIZE = 8;
 
 typedef int G13_KEY_INDEX;
-
-
-    // typedef std::shared_ptr<G13_Action> G13_ActionPtr;
-    typedef int LINUX_KEY_VALUE;
+typedef int LINUX_KEY_VALUE;
 
 // *************************************************************************
 
@@ -109,7 +106,7 @@ class G13_Profile {
     void parse_keys(unsigned char* buf);
     [[nodiscard]] const std::string& name() const { return _name; }
 
-    [[nodiscard]] const G13_Manager& manager() const;
+    [[maybe_unused]] [[nodiscard]] const G13_Manager& manager() const;
 
    protected:
     G13_Device& _keypad;
@@ -118,15 +115,6 @@ class G13_Profile {
 
     void _init_keys();
 };
-
-    typedef std::shared_ptr<G13_Profile> ProfilePtr;
-
-// *************************************************************************
-
-    typedef Helper::Coord<int> G13_StickCoord;
-    typedef Helper::Bounds<int> G13_StickBounds;
-    typedef Helper::Coord<double> G13_ZoneCoord;
-    typedef Helper::Bounds<double> G13_ZoneBounds;
 
 // *************************************************************************
 
@@ -148,7 +136,6 @@ class G13_Profile {
         G13_ZoneBounds _bounds;
     };
 
-    typedef std::shared_ptr<G13_StickZone> G13_StickZonePtr;
 
 // *************************************************************************
 
@@ -190,18 +177,14 @@ class G13_Manager {
     libusb_context* ctx;
     std::vector<G13_Device*> g13s;
 
-    std::map<G13_KEY_INDEX, std::string> g13_key_to_name;
-    std::map<std::string, G13_KEY_INDEX> g13_name_to_key;
-    std::map<LINUX_KEY_VALUE, std::string> input_key_to_name;
-    std::map<std::string, LINUX_KEY_VALUE> input_name_to_key;
-
     std::map<std::string, std::string> _string_config_values;
 
     static bool running;
     static void signal_handler(int);
 };
 
-// *************************************************************************
+    // *************************************************************************
+    [[maybe_unused]]
     inline const G13_Manager& G13_Profile::manager() const {
         return _keypad.manager();
     }

@@ -79,5 +79,10 @@ namespace G13 {
     // clang-format off
     static const char* G13_BTN_SEQ[] = { "LEFT", "RIGHT", "MIDDLE", "SIDE", "EXTRA" };
     // clang-format on
+
+    std::map<G13_KEY_INDEX, std::string> g13_key_to_name;
+    std::map<std::string, G13_KEY_INDEX> g13_name_to_key;
+    std::map<LINUX_KEY_VALUE, std::string> input_key_to_name;
+    std::map<std::string, LINUX_KEY_VALUE> input_name_to_key;
 }
 #endif //G13_G13_KEYS_HPP
