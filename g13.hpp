@@ -4,9 +4,7 @@
 
 #include "g13_device.hpp"
 #include "g13_action.hpp"
-#include "g13_stick.hpp"
 #include "g13_log.hpp"
-#include "helper.hpp"
 #include <libusb-1.0/libusb.h>
 
 // *************************************************************************

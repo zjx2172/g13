@@ -46,14 +46,23 @@ set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
 add_executable(runtests
         g13.cpp
         g13.hpp
+        g13_action.hpp
+        g13_action.cpp
+        g13_device.hpp
+        g13_device.cpp
+        g13_fonts.hpp
         g13_fonts.cpp
+        g13_keys.hpp
         g13_keys.cpp
+        g13_lcd.hpp
         g13_lcd.cpp
+        g13_log.hpp
         g13_log.cpp
+        g13_stick.hpp
         g13_stick.cpp
         g13_test.py
-        helper.cpp
         helper.hpp
+        helper.cpp
         logo.hpp
         testKeys.cpp)
 

@@ -26,7 +26,7 @@ def get_sensors():
         #   print( "failed to match %r" % (line,))
             
         
-    with open( '/tmp/g13-0', 'w') as p:
+    with open( '/run/g13d/g13-0', 'w') as p:
         p.write( 'pos 0 0 \n' )
         p.write( 'out %s\n' % (' '.join(temps)) )
     

@@ -30,13 +30,16 @@ g13_keys.o: g13.hpp helper.hpp g13_keys.cpp
 g13_device.o: g13.hpp helper.hpp g13_device.cpp
 	g++ $(FLAGS) -c g13_device.cpp
 
+g13_action.o: g13.hpp helper.hpp g13_action.cpp
+	g++ $(FLAGS) -c g13_action.cpp
+
 helper.o: helper.hpp helper.cpp
 	g++ $(FLAGS) -c helper.cpp
 	
 	
-g13d: g13_main.o g13.o g13_log.o g13_fonts.o g13_lcd.o g13_stick.o g13_keys.o g13_device.o helper.o
+g13d: g13_main.o g13.o g13_log.o g13_fonts.o g13_lcd.o g13_stick.o g13_keys.o g13_device.o g13_action.o helper.o
 	g++ -o g13d $(FLAGS) \
-		g13_main.o g13.o g13_log.o g13_fonts.o g13_lcd.o g13_stick.o g13_keys.o g13_device.o helper.o \
+		g13_main.o g13.o g13_log.o g13_fonts.o g13_lcd.o g13_stick.o g13_keys.o g13_device.o g13_action.o helper.o \
 	    $(LIBS)
 
 pbm2lpbm: pbm2lpbm.cpp
