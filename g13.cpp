@@ -137,18 +137,7 @@ static int LIBUSB_CALL hotplug_callback(struct libusb_context *ctx, struct libus
         fprintf(stderr, "Unhandled event %d", event);
     }
 */
-    return 1;
-}
-
-static int LIBUSB_CALL hotplug_callback_detach(libusb_context *ctx, libusb_device *dev, libusb_hotplug_event event, void *user_data)
-{
-    (void)ctx;
-    (void)dev;
-    (void)event;
-    (void)user_data;
-
-    // running = false;
-    return 1;
+    return 0;
 }
 
 int G13_Manager::run() {
@@ -183,23 +172,23 @@ int G13_Manager::run() {
         return EXIT_FAILURE;
     }
 
-    libusb_hotplug_callback_handle hp[2];
+    // libusb_hotplug_callback_handle handle;
     if (libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) {
         G13_OUT("Registering hotplug callbacks");
 
-        ret = libusb_hotplug_register_callback(nullptr, LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED,
+        ret = libusb_hotplug_register_callback(ctx, (LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED),
                                                LIBUSB_HOTPLUG_ENUMERATE,
                                                G13_VENDOR_ID, G13_PRODUCT_ID, class_id, hotplug_callback,
-                                               nullptr, &hp[0]);
+                                               nullptr, nullptr);
         if (ret != LIBUSB_SUCCESS) {
-            G13_ERR("Error registering hotplug callback 0");
+            G13_ERR("Error registering hotplug callback");
         }
-        ret = libusb_hotplug_register_callback(nullptr, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT,
-                                               LIBUSB_HOTPLUG_ENUMERATE, G13_VENDOR_ID,
-                                               G13_PRODUCT_ID, class_id, hotplug_callback_detach, nullptr,
-                                               &hp[1]);
+        ret = libusb_hotplug_register_callback(ctx, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT,
+                                               LIBUSB_HOTPLUG_NO_FLAGS,
+                                               G13_VENDOR_ID, G13_PRODUCT_ID, class_id, hotplug_callback,
+                                               nullptr, nullptr);
         if (ret != LIBUSB_SUCCESS) {
-            G13_ERR("Error registering hotplug callback 1");
+            G13_ERR("Error registering hotplug callback");
         }
     }
 
@@ -225,6 +214,7 @@ int G13_Manager::run() {
     do {
         if (!g13s.empty())
             for (auto & g13 : g13s) {
+                libusb_handle_events(ctx);
                 int status = g13->read_keys();
                 g13->read_commands();
                 if (status < 0) {
