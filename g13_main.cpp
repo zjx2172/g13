@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
         switch (opt) {
             case 'l':
                 G13_Manager::Instance()->set_string_config_value("logo", std::string(optarg));
-                G13_Manager::Instance()->set_logo(std::string(optarg));
+                G13_Manager::Instance()->setLogoFilename(std::string(optarg));
                 break;
 
             case 'c':

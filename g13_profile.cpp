@@ -10,7 +10,11 @@ static G13_Manager *mInstance = nullptr;
 
 G13_Manager *G13_Manager::Instance() // Singleton
 {
-  return mInstance ? mInstance : (mInstance = new G13_Manager);
+    if (mInstance == nullptr) {
+        mInstance = new G13_Manager;
+
+    }
+  return mInstance;
 }
 
 void G13_Profile::_init_keys() {

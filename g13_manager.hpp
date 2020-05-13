@@ -6,6 +6,7 @@
 #define G13_G13_MANAGER_HPP
 
 #include "g13.hpp"
+#include "g13_manager.hpp"
 #include "g13_log.hpp"
 #include "g13_action.hpp"
 #include <libusb-1.0/libusb.h>
@@ -21,58 +22,59 @@ namespace G13 {
     class G13_Manager {
     private:
         G13_Manager();
+        static std::string logoFilename;
+        static std::map<std::string, std::string> _string_config_values;
+
     public:
+
         static G13_Manager* Instance(); // Singleton pattern instead of passing references around
+
+        static libusb_context *getCtx();
+        static void setCtx(libusb_context *libusbContext);
+
+        static const std::string &getLogoFilename();
+        static void setLogoFilename(const std::string &logoFilename);
 
         [[nodiscard]] static int find_g13_key_value(const std::string &keyname);
 
         [[nodiscard]] static std::string find_g13_key_name(int);
 
-        [[nodiscard]] G13::LINUX_KEY_VALUE find_input_key_value(const std::string &keyname) const;
+        [[nodiscard]] static G13::LINUX_KEY_VALUE find_input_key_value(const std::string &keyname);
 
         [[nodiscard]] static std::string find_input_key_name(G13::LINUX_KEY_VALUE);
 
-        void set_logo(const std::string &fn) { logo_filename = fn; }
+        static int run();
 
-        int run();
+        [[nodiscard]] static std::string string_config_value(const std::string &name);
 
-        [[nodiscard]] std::string string_config_value(const std::string &name) const;
+        static void set_string_config_value(const std::string &name, const std::string &val);
 
-        void set_string_config_value(const std::string &name, const std::string &val);
+        static std::string make_pipe_name(G13::G13_Device *d, bool is_input) ;
 
-        std::string make_pipe_name(G13::G13_Device *d, bool is_input) const;
+        static void start_logging();
 
-        void start_logging();
+        [[maybe_unused]] static void set_log_level(log4cpp::Priority::PriorityLevel lvl);
 
-        [[maybe_unused]] void set_log_level(log4cpp::Priority::PriorityLevel lvl);
-
-        void set_log_level(const std::string &);
+        static void set_log_level(const std::string &);
 
     protected:
         static void init_keynames();
 
-        void display_keys();
+        static void display_keys();
 
-        void DiscoverG13s(libusb_device **devs, ssize_t count);
+        static void DiscoverG13s(libusb_device **devs, ssize_t count);
 
-        void Cleanup();
-
-        std::string logo_filename;
-        libusb_device **devs;
-
-        libusb_context *ctx;
-
-        std::map<std::string, std::string> _string_config_values;
+        static void Cleanup();
 
         static bool running;
 
         static void signal_handler(int);
 
-        void setupDevice(G13::G13_Device *g13);
+        static void setupDevice(G13::G13_Device *g13);
 
         static int LIBUSB_CALL
-        hotplug_callback(struct libusb_context *ctx, struct libusb_device *dev,
-                         libusb_hotplug_event event, void *user_data);
+        HotplugCallback(struct libusb_context *ctx, struct libusb_device *dev,
+                        libusb_hotplug_event event, void *user_data);
 
         static int OpenAndAddG13(libusb_device *dev);
     };
