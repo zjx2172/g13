@@ -7,13 +7,14 @@
 #include "g13.hpp"
 #include "g13_device.hpp"
 #include "g13_keys.hpp"
-#include "helper.hpp"
 #include "g13_profile.hpp"
+#include "helper.hpp"
 #include <libevdev-1.0/libevdev/libevdev.h>
 // clang-format on
 
 namespace G13 {
 
+/*
     void G13_Key::dump(std::ostream &o) const {
         o << manager().find_g13_key_name(index()) << "(" << index() << ") : ";
         if (action()) {
@@ -22,6 +23,7 @@ namespace G13 {
             o << "(no action)";
         }
     }
+*/
 
 
 // *************************************************************************

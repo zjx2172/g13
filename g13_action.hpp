@@ -103,7 +103,7 @@ namespace  G13 {
         // PARENT_T& parent() { return *_parent_ptr; }
         // [[nodiscard]] const PARENT_T& parent() const { return *_parent_ptr; }
         // G13_Manager& manager() { return _parent_ptr->manager(); }
-        [[nodiscard]] const G13_Manager& manager() const { return _parent_ptr->manager(); }
+        // [[nodiscard]] const G13_Manager& manager() const { return _parent_ptr->manager(); }
 
         virtual void set_action(const G13_ActionPtr& action) { _action = action; }
 

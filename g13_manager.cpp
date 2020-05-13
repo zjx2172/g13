@@ -22,6 +22,11 @@ namespace G13 {
     libusb_hotplug_callback_handle hotplug_cb_handle[2];
     std::condition_variable wakeup;
 
+    std::map<G13_KEY_INDEX, std::string> g13_key_to_name;
+    std::map<std::string, G13_KEY_INDEX> g13_name_to_key;
+    std::map<LINUX_KEY_VALUE, std::string> input_key_to_name;
+    std::map<std::string, LINUX_KEY_VALUE> input_name_to_key;
+
     void G13_Manager::start_logging() {
         log4cpp::Appender *appender1 = new log4cpp::OstreamAppender("console", &std::cout);
         appender1->setLayout(new log4cpp::BasicLayout());
