@@ -164,8 +164,8 @@ class G13_Manager {
    protected:
     static void init_keynames();
     void display_keys();
-    void discover_g13s(libusb_device** devs, ssize_t count, std::vector<G13_Device*>& g13s);
-    void cleanup();
+    void DiscoverG13s(libusb_device** devs, ssize_t count);
+    void Cleanup();
 
     std::string logo_filename;
     libusb_device** devs;
@@ -177,6 +177,12 @@ class G13_Manager {
 
     static bool running;
     static void signal_handler(int);
+
+    void setupDevice(G13_Device *g13);
+    static int LIBUSB_CALL hotplug_callback(struct libusb_context *ctx, struct libusb_device *dev,
+                                                  libusb_hotplug_event event, void *user_data);
+    static int OpenAndAddG13(libusb_device *dev);
+
 };
 
     // *************************************************************************

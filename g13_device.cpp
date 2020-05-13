@@ -15,7 +15,7 @@
 namespace G13 {
     // *************************************************************************
 
-    G13_Device::G13_Device(G13_Manager& manager, libusb_device_handle* handle, int _id)
+    G13_Device::G13_Device(G13_Manager& manager,  libusb_device_handle* handle, int _id)
             : _manager(manager),
               _lcd(*this),
               _stick(*this),
@@ -520,4 +520,5 @@ namespace G13 {
         libusb_release_interface(handle, 0);
         libusb_close(handle);
     }
+
 }

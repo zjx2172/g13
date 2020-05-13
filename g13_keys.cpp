@@ -61,7 +61,7 @@ namespace G13 {
         }
     }
 
-    G13_Key *G13_Profile::find_key(const std::string &keyname) {
+    G13_Key* G13_Profile::find_key(const std::string &keyname) {
         auto key = _keypad.manager().find_g13_key_value(keyname);
         if (key >= 0 && key < _keys.size()) {
             return &_keys[key];

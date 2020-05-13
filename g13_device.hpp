@@ -12,12 +12,13 @@
 #include "g13_lcd.hpp"
 #include "g13_stick.hpp"
 
+
 namespace G13 {
 // *************************************************************************
 
-    class G13_Manager;
     class G13_Profile;
     class G13_Action;
+    class G13_Manager;
 
 
     class G13_Font;
@@ -96,6 +97,11 @@ namespace G13 {
         typedef std::function<void(const char *)> COMMAND_FUNCTION;
         typedef std::map<std::string, COMMAND_FUNCTION> CommandFunctionTable;
 
+/*
+        void setManager(G13_Manager manager) {
+            _manager = manager;
+        }
+*/
 
     protected:
         void _init_fonts();
