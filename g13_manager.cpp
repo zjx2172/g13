@@ -3,32 +3,41 @@
 //
 
 #include "logo.hpp"
-#include <condition_variable>
+
 #include <mutex>
 #include <signal.h>
 #include <utility>
 #include <memory>
 #include <log4cpp/OstreamAppender.hh>
 #include <libevdev-1.0/libevdev/libevdev.h>
+
 #include "helper.hpp"
+
 #include "g13_keys.hpp"
+
 #include "g13_device.hpp"
-#include "g13.hpp"
 #include "g13_manager.hpp"
+#include "g13.hpp"
+
 #include "g13_action.hpp"
 
 namespace G13 {
-    static std::vector<G13::G13_Device *> g13s;
-    static libusb_context *libusbContext;
-    bool G13_Manager::running = true;
-    static libusb_hotplug_callback_handle hotplug_cb_handle[2];
-    std::condition_variable wakeup;
-    static libusb_device **devs;
 
-    std::map<G13_KEY_INDEX, std::string> g13_key_to_name;
-    std::map<std::string, G13_KEY_INDEX> g13_name_to_key;
-    std::map<LINUX_KEY_VALUE, std::string> input_key_to_name;
-    std::map<std::string, LINUX_KEY_VALUE> input_name_to_key;
+    // definitions
+    bool G13_Manager::running = true;
+    std::map<std::string, std::string> G13_Manager::_string_config_values;
+    libusb_context* G13_Manager::libusbContext;
+    std::condition_variable G13_Manager::wakeup;
+    std::vector<G13::G13_Device *> G13_Manager::g13s;
+    libusb_hotplug_callback_handle G13_Manager::hotplug_cb_handle[2];
+
+    std::map<G13_KEY_INDEX, std::string> G13_Manager::g13_key_to_name;
+    std::map<std::string, G13_KEY_INDEX> G13_Manager::g13_name_to_key;
+    std::map<LINUX_KEY_VALUE, std::string> G13_Manager::input_key_to_name;
+    std::map<std::string, LINUX_KEY_VALUE> G13_Manager::input_name_to_key;
+
+    libusb_device** G13_Manager::devs;
+    std::string G13_Manager::logoFilename;
 
     G13_Manager::G13_Manager()/* : libusbContext(nullptr), devs(nullptr)*/ {
         init_keynames();
@@ -121,8 +130,8 @@ namespace G13 {
 
         // setup maps to let us convert between strings and G13 key names
         for (auto &name : G13::G13_KEY_STRINGS) {
-            G13::g13_key_to_name[key_index] = name;
-            G13::g13_name_to_key[name] = key_index;
+            g13_key_to_name[key_index] = name;
+            g13_name_to_key[name] = key_index;
             G13_DBG("mapping G13 " << name << " = " << key_index);
             key_index++;
         }
@@ -139,8 +148,8 @@ namespace G13 {
                 // assert(keyname.compare(libevdev_event_code_get_name(EV_KEY,code)) == 0);
                 // linux/input-event-codes.h
 
-                G13::input_key_to_name[code] = symbol;
-                G13::input_name_to_key[symbol] = code;
+                input_key_to_name[code] = symbol;
+                input_name_to_key[symbol] = code;
                 G13_DBG("mapping " << symbol << " " << keyname << "=" << code);
             }
         }
@@ -153,8 +162,8 @@ namespace G13 {
             if (code < 0) {
                 G13_ERR("No input event code found for " << keyname);
             } else {
-                G13::input_key_to_name[code] = name;
-                G13::input_name_to_key[name] = code;
+                input_key_to_name[code] = name;
+                input_name_to_key[name] = code;
                 G13_DBG("mapping " << name << " " << keyname << "=" << code);
             }
         }
@@ -232,8 +241,8 @@ namespace G13 {
 
     G13::LINUX_KEY_VALUE
     G13_Manager::find_g13_key_value(const std::string &keyname) {
-        auto i = G13::g13_name_to_key.find(keyname);
-        if (i == G13::g13_name_to_key.end()) {
+        auto i = g13_name_to_key.find(keyname);
+        if (i == g13_name_to_key.end()) {
             return G13::BAD_KEY_VALUE;
         }
         return i->second;
@@ -246,8 +255,8 @@ namespace G13 {
             return find_input_key_value(keyname.c_str() + 4);
         }
 
-        auto i = G13::input_name_to_key.find(keyname);
-        if (i == G13::input_name_to_key.end()) {
+        auto i = input_name_to_key.find(keyname);
+        if (i == input_name_to_key.end()) {
             return G13::BAD_KEY_VALUE;
         }
         return i->second;
@@ -255,7 +264,7 @@ namespace G13 {
 
     std::string G13_Manager::find_input_key_name(G13::LINUX_KEY_VALUE v) {
         try {
-            return Helper::find_or_throw(G13::input_key_to_name, v);
+            return Helper::find_or_throw(input_key_to_name, v);
         } catch (...) {
             return "(unknown linux key)";
         }
@@ -280,7 +289,7 @@ namespace G13 {
 
     std::string G13_Manager::find_g13_key_name(G13::G13_KEY_INDEX v) {
         try {
-            return Helper::find_or_throw(G13::g13_key_to_name, v);
+            return Helper::find_or_throw(g13_key_to_name, v);
         } catch (...) {
             return "(unknown G13 key)";
         }
@@ -289,10 +298,10 @@ namespace G13 {
     void G13_Manager::display_keys() {
         typedef std::map<std::string, int> mapType;
         G13_OUT("Known keys on G13:");
-        G13_OUT(Helper::map_keys_out(G13::g13_name_to_key));
+        G13_OUT(Helper::map_keys_out(g13_name_to_key));
 
         G13_OUT("Known keys to map to:");
-        G13_OUT(Helper::map_keys_out(G13::input_name_to_key));
+        G13_OUT(Helper::map_keys_out(input_name_to_key));
     }
 
     int G13_Manager::run() {
@@ -390,7 +399,7 @@ namespace G13 {
         return logoFilename;
     }
 
-    void G13_Manager::setLogoFilename(const std::string &logoFilename) {
-        G13_Manager::logoFilename = logoFilename;
+    void G13_Manager::setLogoFilename(const std::string &newLogoFilename) {
+        logoFilename = newLogoFilename;
     }
 }

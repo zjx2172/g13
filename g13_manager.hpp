@@ -5,6 +5,7 @@
 #ifndef G13_G13_MANAGER_HPP
 #define G13_G13_MANAGER_HPP
 
+#include <condition_variable>
 #include "g13.hpp"
 #include "g13_manager.hpp"
 #include "g13_log.hpp"
@@ -22,8 +23,20 @@ namespace G13 {
     class G13_Manager {
     private:
         G13_Manager();
-        static std::string logoFilename;
+
+        // declarations
+        static bool running;
         static std::map<std::string, std::string> _string_config_values;
+        static libusb_context *libusbContext;
+        static std::condition_variable wakeup;
+        static std::vector<G13::G13_Device *> g13s;
+        static libusb_hotplug_callback_handle hotplug_cb_handle[2];
+        static std::map<G13_KEY_INDEX, std::string> g13_key_to_name;
+        static std::map<std::string, G13_KEY_INDEX> g13_name_to_key;
+        static std::map<LINUX_KEY_VALUE, std::string> input_key_to_name;
+        static std::map<std::string, LINUX_KEY_VALUE> input_name_to_key;
+        static libusb_device **devs;
+        static std::string logoFilename;
 
     public:
 
@@ -35,7 +48,7 @@ namespace G13 {
         static const std::string &getLogoFilename();
         static void setLogoFilename(const std::string &logoFilename);
 
-        [[nodiscard]] static int find_g13_key_value(const std::string &keyname);
+        [[nodiscard]]  int find_g13_key_value(const std::string &keyname);
 
         [[nodiscard]] static std::string find_g13_key_name(int);
 
@@ -58,15 +71,13 @@ namespace G13 {
         static void set_log_level(const std::string &);
 
     protected:
-        static void init_keynames();
+        void init_keynames();
 
         static void display_keys();
 
         static void DiscoverG13s(libusb_device **devs, ssize_t count);
 
         static void Cleanup();
-
-        static bool running;
 
         static void signal_handler(int);
 
