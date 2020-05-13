@@ -30,7 +30,6 @@ namespace G13 {
 
     void G13_Profile::dump(std::ostream &o) const {
         o << "Profile " << Helper::repr(name()) << std::endl;
-        // BOOST_FOREACH (const G13_Key& key, _keys) {
 /*
         for (auto &key : _keys) {
             if (key.action()) {
