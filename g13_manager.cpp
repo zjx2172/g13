@@ -231,6 +231,7 @@ namespace G13 {
             OpenAndAddG13(dev);
         } else if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT) {
             G13_OUT("USB device disconnected");
+            // TODO: remove from g13s
             if (hotplug_cb_handle) {
                 libusb_close(handle);
                 handle = nullptr;
@@ -378,7 +379,8 @@ namespace G13 {
             if (g13s.empty()) {
                 std::mutex wakemutex;
                 std::unique_lock<std::mutex> wakelock{wakemutex};
-                G13_OUT("Waiting...");
+                G13_OUT("Waiting for device to show up ...");
+                libusb_handle_events(libusbContext);
                 wakeup.wait(wakelock);
             }
             for (auto &g13 : g13s) {

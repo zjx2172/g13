@@ -173,13 +173,10 @@ int G13_Device::read_keys() {
   // TODO: Manually set up to fire USB hotplug events again?
   if (error && error != LIBUSB_ERROR_TIMEOUT) {
     if (error == LIBUSB_ERROR_NO_DEVICE || error == LIBUSB_ERROR_IO) {
-      G13_ERR("Stopping daemon " << error << " ("
-                                 << describe_libusb_error_code(error) << ")");
-      return -1;
-    } else {
-      G13_ERR("Error while reading keys: "
-              << error << " (" << describe_libusb_error_code(error) << ")");
+      libusb_handle_events(ctx);
     }
+    G13_ERR("Error while reading keys: "
+              << error << " (" << describe_libusb_error_code(error) << ")");
   }
   if (size == G13_REPORT_SIZE) {
     parse_joystick(buffer);
@@ -309,16 +306,6 @@ void G13_Device::dump(std::ostream &o, int detail) {
     }
   }
 }
-
-// *************************************************************************
-
-/*
-#define RETURN_FAIL(message) \
-    {                        \
-        G13_ERR(message);    \
-        return;              \
-    }
-*/
 
 struct command_adder {
   command_adder(G13_Device::CommandFunctionTable &t, const char *name)
