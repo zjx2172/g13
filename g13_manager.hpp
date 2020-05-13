@@ -62,7 +62,7 @@ namespace G13 {
 
         static void set_string_config_value(const std::string &name, const std::string &val);
 
-        static std::string make_pipe_name(G13::G13_Device *d, bool is_input) ;
+        static std::string make_pipe_name(G13::G13_Device *d, bool is_input);
 
         static void start_logging();
 

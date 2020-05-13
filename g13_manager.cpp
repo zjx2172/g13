@@ -220,15 +220,17 @@ namespace G13 {
         struct libusb_device_descriptor desc;
         int ret;
 
-        G13_DBG("Hotplug callback processing");
+        G13_OUT("Hotplug callback processing");
         (void) libusb_get_device_descriptor(dev, &desc);
-        if (LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED == event) {
+        if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED) {
+            G13_OUT("USB device connected");
             ret = libusb_open(dev, &handle);
             if (LIBUSB_SUCCESS != ret) {
                 G13_ERR("Could not open USB device");
             }
             OpenAndAddG13(dev);
-        } else if (LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT == event) {
+        } else if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT) {
+            G13_OUT("USB device disconnected");
             if (hotplug_cb_handle) {
                 libusb_close(handle);
                 handle = nullptr;
@@ -236,6 +238,7 @@ namespace G13 {
         } else {
             G13_ERR("Unhandled event " << event);
         }
+        G13_OUT("Hotplug callback processing done");
         return 0;
     }
 
@@ -343,7 +346,8 @@ namespace G13 {
         } else {
             G13_DBG("Registering USB hotplug callbacks");
 
-            ret = libusb_hotplug_register_callback(libusbContext, (LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED),
+            // For currently attached devices
+            ret = libusb_hotplug_register_callback(libusbContext, LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED,
                                                    LIBUSB_HOTPLUG_ENUMERATE,
                                                    G13::G13_VENDOR_ID, G13::G13_PRODUCT_ID,
                                                    class_id,
@@ -352,6 +356,10 @@ namespace G13 {
             if (ret != LIBUSB_SUCCESS) {
                 G13_ERR("Error registering hotplug callback 1");
             }
+
+            // For connected devices
+
+            // For disconnected devices
             ret = libusb_hotplug_register_callback(libusbContext, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT,
                                                    LIBUSB_HOTPLUG_NO_FLAGS,
                                                    G13::G13_VENDOR_ID, G13::G13_PRODUCT_ID,

@@ -12,13 +12,14 @@
 
 namespace G13 {
 
+    const size_t G13_VENDOR_ID = 0x046d;
+    const size_t G13_PRODUCT_ID = 0xc21c;
+    const size_t G13_REPORT_SIZE = 8;
+
     // const size_t G13_INTERFACE = 0;
     const size_t G13_KEY_ENDPOINT = 1;
     const size_t G13_LCD_ENDPOINT = 2;
     // const size_t G13_KEY_READ_TIMEOUT = 0;
-    const size_t G13_VENDOR_ID = 0x046d;
-    const size_t G13_PRODUCT_ID = 0xc21c;
-    const size_t G13_REPORT_SIZE = 8;
 
     // *************************************************************************
 
