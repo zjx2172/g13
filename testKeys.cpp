@@ -13,18 +13,20 @@
 #include "g13.hpp"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "g13_manager.hpp"
+#include "g13_profile.hpp"
 
-class MockManager : public G13::G13_Manager {
+class MockManager : public G13_Manager {
    public:
     // MOCK_METHOD0(run,void());
 };
 
 class MockDevice : public G13::G13_Device {
    public:
-    MockDevice(G13::G13_Manager& manager) : G13_Device(manager, nullptr, 0) {}
+    MockDevice(G13_Manager& manager) : G13_Device(manager, nullptr, 0) {}
 };
 
-class MockProfile : public G13::G13_Profile {
+class MockProfile : public G13_Profile {
    public:
     MockProfile(G13::G13_Device& device) : G13_Profile(device, std::string("mock")) {}
 };

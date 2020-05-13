@@ -11,6 +11,8 @@
 #include "g13_stick.hpp"
 #include "g13_log.hpp"
 #include "g13.hpp"
+#include "g13_manager.hpp"
+#include "g13_profile.hpp"
 
 namespace G13 {
     // *************************************************************************

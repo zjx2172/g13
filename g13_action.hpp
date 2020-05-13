@@ -7,14 +7,15 @@
 
 #include <memory>
 #include <vector>
+#include "g13.hpp"
+#include "g13_manager.hpp"
+#include "g13_keys.hpp"
 
 namespace  G13 {
 
     class G13_Device;
     class G13_Manager;
-
-    typedef int LINUX_KEY_VALUE;
-    const LINUX_KEY_VALUE BAD_KEY_VALUE = -1;
+    class G13_Profile;
 
     // typedef std::shared_ptr<G13_Profile> ProfilePtr;
     // class G13_Manager;
@@ -113,5 +114,63 @@ namespace  G13 {
     private:
         PARENT_T* _parent_ptr;
     };
+
+    // *************************************************************************
+    /*! manages the bindings for a G13 key
+     *
+     */
+    class G13_Key : public G13_Actionable<G13_Profile> {
+    public:
+        void dump(std::ostream& o) const;
+        [[nodiscard]] G13_KEY_INDEX index() const { return _index.index; }
+
+        void parse_key(const unsigned char* byte, G13_Device* g13);
+
+    protected:
+        struct KeyIndex {
+            explicit KeyIndex(int key) : index(key), offset(key / 8u), mask(1u << (key % 8u)) {}
+
+            int index;
+            unsigned char offset;
+            unsigned char mask;
+        };
+
+        // G13_Profile is the only class able to instantiate G13_Keys
+        friend class G13_Profile;
+
+        G13_Key(G13_Profile& mode, const std::string& name, int index)
+                : G13_Actionable<G13_Profile>(mode, name), _index(index), _should_parse(true) {}
+
+        G13_Key(G13_Profile& mode, const G13_Key& key)
+                : G13_Actionable<G13_Profile>(mode, key.name()),
+                  _index(key._index),
+                  _should_parse(key._should_parse) {
+            set_action(key.action());   // TODO: do not invoke virtual member function from ctor
+        }
+
+        KeyIndex _index;
+        bool _should_parse;
+    };
+
+    // *************************************************************************
+
+    class G13_StickZone : public G13_Actionable<G13_Stick> {
+    public:
+        G13_StickZone(G13_Stick&, const std::string& name, const G13_ZoneBounds&, G13_ActionPtr = nullptr);
+
+        bool operator==(const G13_StickZone& other) const { return _name == other._name; }
+
+        void dump(std::ostream&) const;
+
+        // void parse_key(unsigned char* byte, G13_Device* g13);
+        void test(const G13_ZoneCoord& loc);
+        void set_bounds(const G13_ZoneBounds& bounds) { _bounds = bounds; }
+
+    protected:
+        bool _active;
+
+        G13_ZoneBounds _bounds;
+    };
+
 }
 #endif //G13_G13_ACTION_HPP

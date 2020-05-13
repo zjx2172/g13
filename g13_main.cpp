@@ -1,5 +1,6 @@
 #include "g13.hpp"
 #include "GIT-VERSION.h"
+#include "g13_manager.hpp"
 #include <getopt.h>
 
 using namespace G13;

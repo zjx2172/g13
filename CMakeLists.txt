@@ -10,7 +10,6 @@ add_executable(pbm2lpbm
         pbm2lpbm.cpp)
 
 add_executable(g13
-        g13.cpp
         g13.hpp
         g13_action.hpp
         g13_action.cpp
@@ -25,6 +24,10 @@ add_executable(g13
         g13_log.hpp
         g13_log.cpp
         g13_main.cpp
+        g13_manager.hpp
+        g13_manager.cpp
+        g13_profile.hpp
+        g13_profile.cpp
         g13_stick.hpp
         g13_stick.cpp
         g13_test.py
@@ -44,7 +47,6 @@ set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/GIT-VERSION-FILE")
 
 add_executable(runtests
-        g13.cpp
         g13.hpp
         g13_action.hpp
         g13_action.cpp

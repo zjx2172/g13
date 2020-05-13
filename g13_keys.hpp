@@ -80,6 +80,10 @@ namespace G13 {
     static const char* G13_BTN_SEQ[] = { "LEFT", "RIGHT", "MIDDLE", "SIDE", "EXTRA" };
     // clang-format on
 
+    typedef int G13_KEY_INDEX;
+    typedef int LINUX_KEY_VALUE;
+    const LINUX_KEY_VALUE BAD_KEY_VALUE = -1;
+
     std::map<G13_KEY_INDEX, std::string> g13_key_to_name;
     std::map<std::string, G13_KEY_INDEX> g13_name_to_key;
     std::map<LINUX_KEY_VALUE, std::string> input_key_to_name;

@@ -5,6 +5,7 @@
 #include "g13.hpp"
 #include "g13_action.hpp"
 #include "g13_device.hpp"
+#include "g13_manager.hpp"
 
 // *************************************************************************
 namespace G13 {
