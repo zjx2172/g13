@@ -17,9 +17,8 @@
 namespace G13 {
     // *************************************************************************
 
-    G13_Device::G13_Device(G13_Manager& manager,  libusb_device_handle* handle, int _id)
-            : _manager(manager),
-              _lcd(*this),
+    G13_Device::G13_Device(libusb_device_handle* handle, int _id)
+            : _lcd(*this),
               _stick(*this),
               handle(handle),
               _id_within_manager(_id),
@@ -452,7 +451,7 @@ namespace G13 {
         command_adder add_log_level(_command_table, "log_level", [this](const char *remainder) {
             std::string level;
             advance_ws(remainder, level);
-            manager().set_log_level(level);
+            G13_Manager::Instance()->set_log_level(level);
         });
 
         command_adder add_refresh(_command_table, "refresh", [this](const char *remainder) {
@@ -502,12 +501,12 @@ namespace G13 {
 
         _uinput_fid = g13_create_uinput(this);
 
-        _input_pipe_name = _manager.make_pipe_name(this, true);
+        _input_pipe_name = G13_Manager::Instance()->make_pipe_name(this, true);
         _input_pipe_fid = g13_create_fifo(_input_pipe_name.c_str());
         if (_input_pipe_fid == -1) {
             G13_ERR("failed opening input pipe " << _input_pipe_name);
         }
-        _output_pipe_name = _manager.make_pipe_name(this, false);
+        _output_pipe_name = G13_Manager::Instance()->make_pipe_name(this, false);
         _output_pipe_fid = g13_create_fifo(_output_pipe_name.c_str());
         if (_output_pipe_fid == -1) {
             G13_ERR("failed opening output pipe " << _output_pipe_name);

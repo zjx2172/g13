@@ -17,7 +17,7 @@ namespace G13 {
         (keys_string, "+");
 
         for (auto &key : keys) {
-            auto kval = manager().find_input_key_value(key);
+            auto kval = G13_Manager::Instance()->find_input_key_value(key);
             if (kval == BAD_KEY_VALUE) {
                 throw G13_CommandException("create action unknown key : " + key);
             }
@@ -49,7 +49,7 @@ namespace G13 {
         for (size_t i = 0; i < _keys.size(); i++) {
             if (i)
                 out << " + ";
-            out << manager().find_input_key_name(_keys[i]);
+            out << G13_Manager::Instance()->find_input_key_name(_keys[i]);
         }
     }
 
@@ -83,12 +83,14 @@ namespace G13 {
         o << "COMMAND : " << Helper::repr(_cmd);
     }
 
+/*
     // inlines
     inline G13_Manager& G13_Action::manager() {
         return _keypad.manager();
     }
+*/
 
-    inline const G13_Manager& G13_Action::manager() const {
+    /*inline const G13_Manager& G13_Action::manager() const {
         return _keypad.manager();
-    }
+    }*/
 }

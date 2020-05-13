@@ -19,8 +19,10 @@
  */
 namespace G13 {
     class G13_Manager {
-    public:
+    private:
         G13_Manager();
+    public:
+        static G13_Manager* Instance(); // Singleton pattern instead of passing references around
 
         [[nodiscard]] static int find_g13_key_value(const std::string &keyname);
 
@@ -59,7 +61,6 @@ namespace G13 {
         libusb_device **devs;
 
         libusb_context *ctx;
-        std::vector<G13::G13_Device *> g13s;
 
         std::map<std::string, std::string> _string_config_values;
 
@@ -74,7 +75,6 @@ namespace G13 {
                          libusb_hotplug_event event, void *user_data);
 
         static int OpenAndAddG13(libusb_device *dev);
-
     };
 }
 

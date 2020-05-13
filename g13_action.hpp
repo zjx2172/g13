@@ -39,7 +39,6 @@ namespace  G13 {
 
         // [[maybe_unused]] [[nodiscard]] const G13_Device& keypad() const { return _keypad; }
 
-        G13_Manager& manager();
         [[nodiscard]] const G13_Manager& manager() const;
 
     private:

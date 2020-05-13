@@ -27,9 +27,8 @@ void printHelp() {
 
 int main(int argc, char* argv[]) {
 
-    G13_Manager manager;
-    manager.start_logging();
-    manager.set_log_level("INFO");
+    G13_Manager::Instance()->start_logging();
+    G13_Manager::Instance()->set_log_level("INFO");
     G13_OUT("g13d v" << GIT_VERSION << " " << __DATE__ << " " << __TIME__);
 
     // TODO: move out argument parsing
@@ -52,25 +51,25 @@ int main(int argc, char* argv[]) {
 
         switch (opt) {
             case 'l':
-                manager.set_string_config_value("logo", std::string(optarg));
-                manager.set_logo(std::string(optarg));
+                G13_Manager::Instance()->set_string_config_value("logo", std::string(optarg));
+                G13_Manager::Instance()->set_logo(std::string(optarg));
                 break;
 
             case 'c':
-                manager.set_string_config_value("config", std::string(optarg));
+                G13_Manager::Instance()->set_string_config_value("config", std::string(optarg));
                 break;
 
             case 'i':
-                manager.set_string_config_value("pipe_in", std::string(optarg));
+                G13_Manager::Instance()->set_string_config_value("pipe_in", std::string(optarg));
                 break;
 
             case 'o':
-                manager.set_string_config_value("pipe_out", std::string(optarg));
+                G13_Manager::Instance()->set_string_config_value("pipe_out", std::string(optarg));
                 break;
 
             case 'd':
-                manager.set_string_config_value("log_level", std::string(optarg));
-                manager.set_log_level(manager.string_config_value("log_level"));
+                G13_Manager::Instance()->set_string_config_value("log_level", std::string(optarg));
+                G13_Manager::Instance()->set_log_level(G13_Manager::Instance()->string_config_value("log_level"));
                 break;
 
             case 'h':  // -h or --help
@@ -80,5 +79,5 @@ int main(int argc, char* argv[]) {
                 break;
         }
     }
-    return manager.run();
+    return G13_Manager::Instance()->run();
 }

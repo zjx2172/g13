@@ -18,6 +18,7 @@
 #include "g13_action.hpp"
 
 namespace G13 {
+    static std::vector<G13::G13_Device *> g13s;
     bool G13_Manager::running = true;
     libusb_hotplug_callback_handle hotplug_cb_handle[2];
     std::condition_variable wakeup;
@@ -61,7 +62,7 @@ namespace G13 {
             libusb_close(handle);
             return 1;
         }
-        // g13s.push_back(new G13_Device(*this, handle, g13s.size()));
+        g13s.push_back(new G13_Device(handle, g13s.size()));
         return 0;
     }
 

@@ -34,11 +34,7 @@ namespace G13 {
     class G13_Device {
     public:
 
-        G13_Device(G13_Manager &manager, libusb_device_handle *handle, int id);
-
-        G13_Manager &manager() { return _manager; }
-
-        [[nodiscard]] const G13_Manager &manager() const { return _manager; }
+        G13_Device(libusb_device_handle *handle, int id);
 
         G13_LCD &lcd() { return _lcd; }
 
@@ -134,7 +130,6 @@ namespace G13 {
         std::map<std::string, ProfilePtr> _profiles;
         ProfilePtr _current_profile;
 
-        G13_Manager &_manager;
         G13_LCD _lcd;
         G13_Stick _stick;
 
