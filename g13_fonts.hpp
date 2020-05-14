@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <cstring>
+#include <string>
 
 namespace G13 {
     class G13_Font;
@@ -37,13 +38,13 @@ namespace G13 {
         template <class ARRAY_T, class FLAGST>
         void install_font(ARRAY_T& data, FLAGST flags, int first = 0);
 
-        [[nodiscard]] const std::string& name() const { return _name; }
+        [[nodiscard]] const std::string& name() const { return m_name; }
         [[nodiscard]] unsigned int width() const { return _width; }
 
         const G13_FontChar& char_data(unsigned int x) { return _chars[x]; }
 
     protected:
-        std::string _name;
+        std::string m_name;
         unsigned int _width;
 
         G13_FontChar _chars[256];

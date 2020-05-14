@@ -26,7 +26,7 @@ namespace G13 {
 
         // declarations
         static bool running;
-        static std::map<std::string, std::string> _string_config_values;
+        static std::map<std::string, std::string> stringConfigValues;
         static libusb_context *libusbContext;
         static std::condition_variable wakeup;
         static std::vector<G13::G13_Device *> g13s;
@@ -58,11 +58,11 @@ namespace G13 {
 
         static int run();
 
-        [[nodiscard]] static std::string string_config_value(const std::string &name);
+        [[nodiscard]] static std::string getStringConfigValue(const std::string &name);
 
-        static void set_string_config_value(const std::string &name, const std::string &val);
+        static void setStringConfigValue(const std::string &name, const std::string &value);
 
-        static std::string make_pipe_name(G13::G13_Device *d, bool is_input);
+        static std::string MakePipeName(G13::G13_Device *d, bool is_input);
 
         static void start_logging();
 
@@ -71,7 +71,7 @@ namespace G13 {
         static void set_log_level(const std::string &);
 
     protected:
-        void init_keynames();
+        static void InitKeynames();
 
         static void display_keys();
 
@@ -79,7 +79,7 @@ namespace G13 {
 
         static void Cleanup();
 
-        static void signal_handler(int);
+        static void SignalHandler(int);
 
         static void setupDevice(G13::G13_Device *g13);
 

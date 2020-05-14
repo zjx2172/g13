@@ -170,17 +170,17 @@ int G13_Device::read_keys() {
       libusb_interrupt_transfer(handle, LIBUSB_ENDPOINT_IN | G13_KEY_ENDPOINT,
                                 buffer, G13_REPORT_SIZE, &size, 100);
 
-  // TODO: Manually set up to fire USB hotplug events again?
   if (error && error != LIBUSB_ERROR_TIMEOUT) {
+    G13_ERR("Error while reading keys: "
+            << error << " (" << describe_libusb_error_code(error) << ")");
     if (error == LIBUSB_ERROR_NO_DEVICE || error == LIBUSB_ERROR_IO) {
+      G13_DBG("Giving libusb a nudge");
       libusb_handle_events(ctx);
     }
-    G13_ERR("Error while reading keys: "
-              << error << " (" << describe_libusb_error_code(error) << ")");
   }
   if (size == G13_REPORT_SIZE) {
     parse_joystick(buffer);
-    _current_profile->parse_keys(buffer);
+    _current_profile->ParseKeys(buffer);
     send_event(EV_SYN, SYN_REPORT, 0);
   }
   return 0;
@@ -310,6 +310,7 @@ void G13_Device::dump(std::ostream &o, int detail) {
 struct command_adder {
   command_adder(G13_Device::CommandFunctionTable &t, const char *name)
       : _t(t), _name(name) {}
+
   command_adder(G13_Device::CommandFunctionTable &t, const char *name,
                 G13_Device::COMMAND_FUNCTION f)
       : _t(t), _name(name) {
@@ -318,6 +319,7 @@ struct command_adder {
 
   G13_Device::CommandFunctionTable &_t;
   std::string _name;
+
   command_adder &operator+=(G13_Device::COMMAND_FUNCTION f) {
     _t[_name] = std::move(f);
     return *this;
@@ -346,7 +348,7 @@ void G13_Device::_init_commands() {
     advance_ws(remainder, keyname);
     std::string action = remainder;
     try {
-      if (auto key = _current_profile->find_key(keyname)) {
+      if (auto key = _current_profile->FindKey(keyname)) {
         key->set_action(make_action(action));
       } else if (auto stick_key = _stick.zone(keyname)) {
         stick_key->set_action(make_action(action));
@@ -503,12 +505,12 @@ void G13_Device::register_context(libusb_context *_ctx) {
 
   _uinput_fid = g13_create_uinput(this);
 
-  _input_pipe_name = G13_Manager::Instance()->make_pipe_name(this, true);
+  _input_pipe_name = G13_Manager::Instance()->MakePipeName(this, true);
   _input_pipe_fid = g13_create_fifo(_input_pipe_name.c_str());
   if (_input_pipe_fid == -1) {
     G13_ERR("failed opening input pipe " << _input_pipe_name);
   }
-  _output_pipe_name = G13_Manager::Instance()->make_pipe_name(this, false);
+  _output_pipe_name = G13_Manager::Instance()->MakePipeName(this, false);
   _output_pipe_fid = g13_create_fifo(_output_pipe_name.c_str());
   if (_output_pipe_fid == -1) {
     G13_ERR("failed opening output pipe " << _output_pipe_name);

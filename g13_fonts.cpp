@@ -3,7 +3,6 @@
 
 namespace G13 {
 
-
 // font data from https://github.com/dhepper/font8x8
 // Constant: font8x8_basic
 // Contains an 8x8 font map for unicode points U+0000 - U+007F (basic latin)
@@ -365,9 +364,9 @@ unsigned char font5x8[][5] = {
     {0x18, 0xA2, 0xA0, 0xA2, 0x78}   // 0xFF ÿ
 };
 
-G13_Font::G13_Font() : _name("default"), _width(8) {}
+G13_Font::G13_Font() : m_name("default"), _width(8) {}
 
-G13_Font::G13_Font(const std::string& name, unsigned int width) : _name(name), _width(width) {}
+G13_Font::G13_Font(const std::string& name, unsigned int width) : m_name(name), _width(width) {}
 
 void G13_FontChar::set_character(unsigned char* data, int width, unsigned flags) {
     unsigned char* dest = bits_regular;

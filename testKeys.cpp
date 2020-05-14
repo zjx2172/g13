@@ -34,7 +34,7 @@ class MockProfile : public G13_Profile {
 // class MockProfile : public G13::G13_Profile {
 // public:
 //    G13_Profile(G13_Device& keypad, const std::string& name_arg)
-//    : _keypad(keypad), _name(name_arg) {
+//    : _keypad(keypad), m_name(name_arg) {
 //        _init_keys();
 //
 //    }    MOCK_METHOD0(_init_keys, void());
@@ -49,7 +49,7 @@ TEST(G13Key, g13_key_maps_to_value) {
     // G13::G13_Profile profile = MockProfile(device);
 
     // auto profile = G13::G13_Profile("",std::string(""),"");
-    // auto key = profile.find_key("KEY_0");
+    // auto key = profile.FindKey("KEY_0");
     // EXPECT_EQ(key->index(), 10);
 }
 

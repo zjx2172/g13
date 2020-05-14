@@ -26,11 +26,11 @@ namespace G13 {
                 : _keypad(other._keypad), _name(std::move(name_arg)), _keys(other._keys) {}
 
         // search key by G13 keyname
-        G13::G13_Key *find_key(const std::string &keyname);
+        G13::G13_Key *FindKey(const std::string &keyname);
 
         void dump(std::ostream &o) const;
 
-        void parse_keys(unsigned char *buf);
+        void ParseKeys(unsigned char *buf);
 
         [[nodiscard]] const std::string &name() const { return _name; }
 

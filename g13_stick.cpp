@@ -87,11 +87,11 @@ void G13_StickZone::test(const G13_ZoneCoord& loc) {
     _active = _bounds.contains(loc);
     if (!_active) {
         if (prior_active) {
-            // cout << "exit stick zone " << _name << std::endl;
+            // cout << "exit stick zone " << m_name << std::endl;
             _action->act(false);
         }
     } else {
-        // cout << "in stick zone " << _name << std::endl;
+        // cout << "in stick zone " << m_name << std::endl;
         _action->act(true);
     }
 }

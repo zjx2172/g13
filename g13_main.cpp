@@ -51,25 +51,26 @@ int main(int argc, char* argv[]) {
 
         switch (opt) {
             case 'l':
-                G13_Manager::Instance()->set_string_config_value("logo", std::string(optarg));
+              G13_Manager::Instance()->setStringConfigValue("logo", std::string(optarg));
                 G13_Manager::Instance()->setLogoFilename(std::string(optarg));
                 break;
 
             case 'c':
-                G13_Manager::Instance()->set_string_config_value("config", std::string(optarg));
+              G13_Manager::Instance()->setStringConfigValue("config", std::string(optarg));
                 break;
 
             case 'i':
-                G13_Manager::Instance()->set_string_config_value("pipe_in", std::string(optarg));
+              G13_Manager::Instance()->setStringConfigValue("pipe_in", std::string(optarg));
                 break;
 
             case 'o':
-                G13_Manager::Instance()->set_string_config_value("pipe_out", std::string(optarg));
+              G13_Manager::Instance()->setStringConfigValue("pipe_out", std::string(optarg));
                 break;
 
             case 'd':
-                G13_Manager::Instance()->set_string_config_value("log_level", std::string(optarg));
-                G13_Manager::Instance()->set_log_level(G13_Manager::Instance()->string_config_value("log_level"));
+              G13_Manager::Instance()->setStringConfigValue("log_level", std::string(optarg));
+                G13_Manager::Instance()->set_log_level(
+                    G13_Manager::Instance()->getStringConfigValue("log_level"));
                 break;
 
             case 'h':  // -h or --help

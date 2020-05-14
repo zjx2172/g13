@@ -5,8 +5,7 @@
 #include "logo.hpp"
 
 #include <mutex>
-#include <signal.h>
-#include <utility>
+#include <csignal>
 #include <memory>
 #include <log4cpp/OstreamAppender.hh>
 #include <libevdev-1.0/libevdev/libevdev.h>
@@ -19,13 +18,11 @@
 #include "g13_manager.hpp"
 #include "g13.hpp"
 
-#include "g13_action.hpp"
-
 namespace G13 {
 
     // definitions
     bool G13_Manager::running = true;
-    std::map<std::string, std::string> G13_Manager::_string_config_values;
+    std::map<std::string, std::string> G13_Manager::stringConfigValues;
     libusb_context* G13_Manager::libusbContext;
     std::condition_variable G13_Manager::wakeup;
     std::vector<G13::G13_Device *> G13_Manager::g13s;
@@ -40,7 +37,7 @@ namespace G13 {
     std::string G13_Manager::logoFilename;
 
     G13_Manager::G13_Manager()/* : libusbContext(nullptr), devs(nullptr)*/ {
-        init_keynames();
+      InitKeynames();
     }
 
     void G13_Manager::start_logging() {
@@ -124,7 +121,7 @@ namespace G13 {
         libusb_exit(libusbContext);
     }
 
-    void G13_Manager::init_keynames() {
+    void G13_Manager::InitKeynames() {
 
         int key_index = 0;
 
@@ -169,28 +166,28 @@ namespace G13 {
         }
     }
 
-    void G13_Manager::signal_handler(int signal) {
+    void G13_Manager::SignalHandler(int signal) {
         G13_OUT("Caught signal " << signal << " (" << strsignal(signal) << ")");
         running = false;
         wakeup.notify_all();
     }
 
-    std::string G13_Manager::string_config_value(const std::string &name) {
+    std::string G13_Manager::getStringConfigValue(const std::string &name) {
         try {
-            return Helper::find_or_throw(_string_config_values, name);
+            return Helper::find_or_throw(stringConfigValues, name);
         } catch (...) {
             return "";
         }
     }
 
-    void G13_Manager::set_string_config_value(const std::string &name, const std::string &value) {
-        G13_DBG("set_string_config_value " << name << " = " << Helper::repr(value));
-        _string_config_values[name] = value;
+    void G13_Manager::setStringConfigValue(const std::string &name, const std::string &value) {
+        G13_DBG("setStringConfigValue " << name << " = " << Helper::repr(value));
+      stringConfigValues[name] = value;
     }
 
-    std::string G13_Manager::make_pipe_name(G13::G13_Device *d, bool is_input) {
+    std::string G13_Manager::MakePipeName(G13::G13_Device *d, bool is_input) {
         if (is_input) {
-            std::string config_base = string_config_value("pipe_in");
+            std::string config_base = getStringConfigValue("pipe_in");
             if (!config_base.empty()) {
                 if (d->id_within_manager() == 0) {
                     return config_base;
@@ -200,7 +197,7 @@ namespace G13 {
             }
             return CONTROL_DIR + "g13-" + std::to_string(d->id_within_manager());
         } else {
-            std::string config_base = string_config_value("pipe_out");
+            std::string config_base = getStringConfigValue("pipe_out");
             if (!config_base.empty()) {
                 if (d->id_within_manager() == 0) {
                     return config_base;
@@ -220,7 +217,7 @@ namespace G13 {
         struct libusb_device_descriptor desc;
         int ret;
 
-        G13_OUT("Hotplug callback processing");
+        G13_DBG("Hotplug callback processing");
         (void) libusb_get_device_descriptor(dev, &desc);
         if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED) {
             G13_OUT("USB device connected");
@@ -239,7 +236,7 @@ namespace G13 {
         } else {
             G13_ERR("Unhandled event " << event);
         }
-        G13_OUT("Hotplug callback processing done");
+        G13_DBG("Hotplug callback processing done");
         return 0;
     }
 
@@ -284,7 +281,7 @@ namespace G13 {
         G13_OUT("Active Stick zones ");
         g13->stick().dump(std::cout);
 
-        std::string config_fn = string_config_value("config");
+        std::string config_fn = getStringConfigValue("config");
         if (!config_fn.empty()) {
             G13_OUT("config_fn = " << config_fn);
             g13->read_config_file(config_fn);
@@ -372,8 +369,8 @@ namespace G13 {
             }
         }
 
-        signal(SIGINT, signal_handler);
-        signal(SIGTERM, signal_handler);
+      signal(SIGINT, SignalHandler);
+      signal(SIGTERM, SignalHandler);
 
         do {
             if (g13s.empty()) {

@@ -123,7 +123,7 @@ namespace  G13 {
         void dump(std::ostream& o) const;
         [[nodiscard]] G13_KEY_INDEX index() const { return _index.index; }
 
-        void parse_key(const unsigned char* byte, G13_Device* g13);
+        void ParseKey(const unsigned char* byte, G13_Device* g13);
 
     protected:
         struct KeyIndex {
@@ -161,7 +161,7 @@ namespace  G13 {
 
         void dump(std::ostream&) const;
 
-        // void parse_key(unsigned char* byte, G13_Device* g13);
+        // void ParseKey(unsigned char* byte, G13_Device* g13);
         void test(const G13_ZoneCoord& loc);
         void set_bounds(const G13_ZoneBounds& bounds) { _bounds = bounds; }
 
