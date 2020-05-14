@@ -27,6 +27,7 @@ namespace G13 {
     std::condition_variable G13_Manager::wakeup;
     std::vector<G13::G13_Device *> G13_Manager::g13s;
     libusb_hotplug_callback_handle G13_Manager::hotplug_cb_handle[2];
+    const int G13_Manager::class_id = LIBUSB_HOTPLUG_MATCH_ANY;
 
     std::map<G13_KEY_INDEX, std::string> G13_Manager::g13_key_to_name;
     std::map<std::string, G13_KEY_INDEX> G13_Manager::g13_name_to_key;
@@ -75,7 +76,7 @@ namespace G13 {
             return 1;
         }
         auto g13 = new G13_Device(handle, g13s.size());
-        setupDevice(g13);
+      SetupDevice(g13);
         g13s.push_back(g13);
         return 0;
     }
@@ -228,20 +229,20 @@ namespace G13 {
             OpenAndAddG13(dev);
         } else if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT) {
             G13_OUT("USB device disconnected");
-            // TODO: remove from g13s
-            if (hotplug_cb_handle) {
-                libusb_close(handle);
-                handle = nullptr;
-            }
+            // TODO: remove from g13s by identifying it using parameters
+            g13s.clear();
+            libusb_close(handle);
         } else {
             G13_ERR("Unhandled event " << event);
         }
         G13_DBG("Hotplug callback processing done");
+
+        // TODO: Rearm callbacks
         return 0;
     }
 
     G13::LINUX_KEY_VALUE
-    G13_Manager::find_g13_key_value(const std::string &keyname) {
+    G13_Manager::FindG13KeyValue(const std::string &keyname) {
         auto i = g13_name_to_key.find(keyname);
         if (i == g13_name_to_key.end()) {
             return G13::BAD_KEY_VALUE;
@@ -250,10 +251,10 @@ namespace G13 {
     }
 
     G13::LINUX_KEY_VALUE
-    G13_Manager::find_input_key_value(const std::string &keyname) {
+    G13_Manager::FindInputKeyValue(const std::string &keyname) {
         // if there is a KEY_ prefix, strip it off
         if (!strncmp(keyname.c_str(), "KEY_", 4)) {
-            return find_input_key_value(keyname.c_str() + 4);
+            return FindInputKeyValue(keyname.c_str() + 4);
         }
 
         auto i = input_name_to_key.find(keyname);
@@ -263,7 +264,7 @@ namespace G13 {
         return i->second;
     }
 
-    std::string G13_Manager::find_input_key_name(G13::LINUX_KEY_VALUE v) {
+    std::string G13_Manager::FindInputKeyName(G13::LINUX_KEY_VALUE v) {
         try {
             return Helper::find_or_throw(input_key_to_name, v);
         } catch (...) {
@@ -271,7 +272,7 @@ namespace G13 {
         }
     }
 
-    void G13_Manager::setupDevice(G13::G13_Device *g13) {
+    void G13_Manager::SetupDevice(G13::G13_Device *g13) {
         g13->register_context(libusbContext);
 
         if (!logoFilename.empty()) {
@@ -288,7 +289,7 @@ namespace G13 {
         }
     }
 
-    std::string G13_Manager::find_g13_key_name(G13::G13_KEY_INDEX v) {
+    std::string G13_Manager::FindG13KeyName(G13::G13_KEY_INDEX v) {
         try {
             return Helper::find_or_throw(g13_key_to_name, v);
         } catch (...) {
@@ -296,7 +297,7 @@ namespace G13 {
         }
     }
 
-    void G13_Manager::display_keys() {
+    void G13_Manager::DisplayKeys() {
         typedef std::map<std::string, int> mapType;
         G13_OUT("Known keys on G13:");
         G13_OUT(Helper::map_keys_out(g13_name_to_key));
@@ -305,10 +306,8 @@ namespace G13 {
         G13_OUT(Helper::map_keys_out(input_name_to_key));
     }
 
-    int G13_Manager::run() {
-        static const int class_id = LIBUSB_HOTPLUG_MATCH_ANY;
-
-        display_keys();
+    int G13_Manager::Run() {
+      DisplayKeys();
 
         ssize_t cnt;
         int ret;
@@ -339,34 +338,10 @@ namespace G13 {
             }
 
             for (auto &g13 : g13s) {
-                setupDevice(g13);
+              SetupDevice(g13);
             }
         } else {
-            G13_DBG("Registering USB hotplug callbacks");
-
-            // For currently attached devices
-            ret = libusb_hotplug_register_callback(libusbContext, LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED,
-                                                   LIBUSB_HOTPLUG_ENUMERATE,
-                                                   G13::G13_VENDOR_ID, G13::G13_PRODUCT_ID,
-                                                   class_id,
-                                                   HotplugCallback,
-                                                   nullptr, &hotplug_cb_handle[0]);
-            if (ret != LIBUSB_SUCCESS) {
-                G13_ERR("Error registering hotplug callback 1");
-            }
-
-            // For connected devices
-
-            // For disconnected devices
-            ret = libusb_hotplug_register_callback(libusbContext, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT,
-                                                   LIBUSB_HOTPLUG_NO_FLAGS,
-                                                   G13::G13_VENDOR_ID, G13::G13_PRODUCT_ID,
-                                                   class_id,
-                                                   HotplugCallback,
-                                                   nullptr, &hotplug_cb_handle[1]);
-            if (ret != LIBUSB_SUCCESS) {
-                G13_ERR("Error registering hotplug callback 2");
-            }
+          ArmHotplugCallbacks();
         }
 
       signal(SIGINT, SignalHandler);
@@ -394,6 +369,35 @@ namespace G13 {
         return EXIT_SUCCESS;
     }
 
+  void G13_Manager::ArmHotplugCallbacks() {
+    G13_DBG("Registering USB hotplug callbacks");
+
+    // For currently attached devices
+    int ret = libusb_hotplug_register_callback(libusbContext, LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED,
+                                           LIBUSB_HOTPLUG_ENUMERATE,
+                                           G13_VENDOR_ID, G13_PRODUCT_ID,
+                                           class_id,
+                                           HotplugCallback,
+                                           nullptr, &hotplug_cb_handle[0]);
+    if (ret != LIBUSB_SUCCESS) {
+        G13_ERR("Error registering hotplug callback 1");
+    }
+
+    // For connected devices
+
+    // For disconnected devices
+    ret = libusb_hotplug_register_callback(libusbContext, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT,
+                                           LIBUSB_HOTPLUG_NO_FLAGS,
+                                           G13_VENDOR_ID, G13_PRODUCT_ID,
+                                           class_id,
+                                           HotplugCallback,
+                                           nullptr, &hotplug_cb_handle[1]);
+    if (ret != LIBUSB_SUCCESS) {
+        G13_ERR("Error registering hotplug callback 2");
+    }
+  }
+
+/*
     libusb_context *G13_Manager::getCtx() {
         return libusbContext;
     }
@@ -401,10 +405,13 @@ namespace G13 {
     void G13_Manager::setCtx(libusb_context *newLibusbContext) {
         libusbContext = newLibusbContext;
     }
+*/
 
+/*
     const std::string &G13_Manager::getLogoFilename() {
         return logoFilename;
     }
+*/
 
     void G13_Manager::setLogoFilename(const std::string &newLogoFilename) {
         logoFilename = newLogoFilename;

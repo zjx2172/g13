@@ -18,12 +18,12 @@ Compile by running
 
     make
 
-If you want to run the daemon as user, put the file 91-g13.rules into /etc/udev/rules.d/ (or whatever directory your distribution uses).
+If you want to Run the daemon as user, put the file 91-g13.rules into /etc/udev/rules.d/ (or whatever directory your distribution uses).
 
 ## Running
 
 
-Connect your device, then run ./g13d, it should automatically find your device.
+Connect your device, then Run ./g13d, it should automatically find your device.
 
 If you see output like
 

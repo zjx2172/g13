@@ -37,6 +37,7 @@ namespace G13 {
         static std::map<std::string, LINUX_KEY_VALUE> input_name_to_key;
         static libusb_device **devs;
         static std::string logoFilename;
+        static const int class_id;
 
     public:
 
@@ -48,15 +49,15 @@ namespace G13 {
         static const std::string &getLogoFilename();
         static void setLogoFilename(const std::string &logoFilename);
 
-        [[nodiscard]]  int find_g13_key_value(const std::string &keyname);
+        [[nodiscard]]  static int FindG13KeyValue(const std::string &keyname);
 
-        [[nodiscard]] static std::string find_g13_key_name(int);
+        [[nodiscard]] static std::string FindG13KeyName(int v);
 
-        [[nodiscard]] static G13::LINUX_KEY_VALUE find_input_key_value(const std::string &keyname);
+        [[nodiscard]] static G13::LINUX_KEY_VALUE FindInputKeyValue(const std::string &keyname);
 
-        [[nodiscard]] static std::string find_input_key_name(G13::LINUX_KEY_VALUE);
+        [[nodiscard]] static std::string FindInputKeyName(G13::LINUX_KEY_VALUE v);
 
-        static int run();
+        static int Run();
 
         [[nodiscard]] static std::string getStringConfigValue(const std::string &name);
 
@@ -73,7 +74,7 @@ namespace G13 {
     protected:
         static void InitKeynames();
 
-        static void display_keys();
+        static void DisplayKeys();
 
         static void DiscoverG13s(libusb_device **devs, ssize_t count);
 
@@ -81,13 +82,16 @@ namespace G13 {
 
         static void SignalHandler(int);
 
-        static void setupDevice(G13::G13_Device *g13);
+        static void SetupDevice(G13::G13_Device *g13);
 
         static int LIBUSB_CALL
         HotplugCallback(struct libusb_context *ctx, struct libusb_device *dev,
                         libusb_hotplug_event event, void *user_data);
 
         static int OpenAndAddG13(libusb_device *dev);
+
+
+      static void ArmHotplugCallbacks();
     };
 }
 

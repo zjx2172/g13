@@ -17,7 +17,7 @@ namespace G13 {
         (keys_string, "+");
 
         for (auto &key : keys) {
-            auto kval = G13_Manager::Instance()->find_input_key_value(key);
+            auto kval = G13_Manager::Instance()->FindInputKeyValue(key);
             if (kval == BAD_KEY_VALUE) {
                 throw G13_CommandException("create action unknown key : " + key);
             }
@@ -49,7 +49,7 @@ namespace G13 {
         for (size_t i = 0; i < _keys.size(); i++) {
             if (i)
                 out << " + ";
-            out << G13_Manager::Instance()->find_input_key_name(_keys[i]);
+            out << G13_Manager::Instance()->FindInputKeyName(_keys[i]);
         }
     }
 

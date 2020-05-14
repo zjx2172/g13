@@ -55,7 +55,7 @@ void G13_Profile::ParseKeys(unsigned char *buf) {
 }
 
 G13_Key *G13_Profile::FindKey(const std::string &keyname) {
-  auto key = G13_Manager::Instance()->find_g13_key_value(keyname);
+  auto key = G13_Manager::Instance()->FindG13KeyValue(keyname);
   if (key >= 0 && key < _keys.size()) {
     return &_keys[key];
   }

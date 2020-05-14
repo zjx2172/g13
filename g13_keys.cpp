@@ -15,7 +15,7 @@
 namespace G13 {
 
 void G13_Key::dump(std::ostream &o) const {
-  o << G13_Manager::Instance()->find_g13_key_name(index()) << "(" << index()
+  o << G13_Manager::Instance()->FindG13KeyName(index()) << "(" << index()
     << ") : ";
   if (action()) {
     action()->dump(o);

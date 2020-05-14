@@ -18,7 +18,7 @@
 
 class MockManager : public G13_Manager {
    public:
-    // MOCK_METHOD0(run,void());
+    // MOCK_METHOD0(Run,void());
 };
 
 class MockDevice : public G13::G13_Device {

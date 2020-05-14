@@ -80,5 +80,5 @@ int main(int argc, char* argv[]) {
                 break;
         }
     }
-    return G13_Manager::Instance()->run();
+    return G13_Manager::Instance()->Run();
 }
