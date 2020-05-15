@@ -60,26 +60,43 @@ void G13_Manager::start_logging() {
 
 // *************************************************************************
 int G13_Manager::OpenAndAddG13(libusb_device *dev) {
-  libusb_device_handle *handle;
 
+  libusb_device_handle *handle;
   int ret = libusb_open(dev, &handle);
-  if (ret != 0) {
+  if (ret != LIBUSB_SUCCESS) {
     G13_ERR("Error opening G13 device");
     return 1;
   }
-  if (libusb_kernel_driver_active(handle, 0) == 1) {
-    if (libusb_detach_kernel_driver(handle, 0) == 0) {
-      G13_ERR("Kernel driver detached");
+
+  libusb_set_auto_detach_kernel_driver(handle, true);
+
+  auto retries = 3;
+  while (retries > 0) {
+    ret = libusb_claim_interface(handle, 0);
+    if (ret < 0) {
+      G13_ERR("Cannot Claim Interface: " << ret << " ("
+                                         << libusb_error_name(ret) << ")");
+      if (ret == LIBUSB_ERROR_BUSY) {
+        if (libusb_kernel_driver_active(handle, 0) == 1) {
+          if (libusb_detach_kernel_driver(handle, 0) == 0) {
+            G13_ERR("Kernel driver detached");
+          }
+        }
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      retries--;
+    } else {
+      retries = 1;
+      break;
     }
   }
-
-  ret = libusb_claim_interface(handle, 0);
-  if (ret < 0) {
-    G13_ERR("Cannot Claim Interface");
+  if (retries == 0) {
     libusb_release_interface(handle, 0);
     libusb_close(handle);
     return 1;
   }
+
+  // Got it
   auto g13 = new G13_Device(dev, handle, g13s.size());
   SetupDevice(g13);
   g13s.push_back(g13);
@@ -223,6 +240,9 @@ int LIBUSB_CALL G13_Manager::HotplugCallbackInsert(struct libusb_context *ctx,
                                                    libusb_hotplug_event event,
                                                    void *user_data) {
   G13_OUT("USB device connected");
+
+  wakeup.notify_all();
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
   OpenAndAddG13(dev);
   return 0; // Rearm
 }
@@ -356,17 +376,19 @@ int G13_Manager::Run() {
       std::mutex wakemutex;
       std::unique_lock<std::mutex> wakelock{wakemutex};
       G13_OUT("Waiting for device to show up ...");
-      int error = libusb_handle_events(NULL);
+      int error = libusb_handle_events(libusbContext);
       if (error != LIBUSB_SUCCESS) {
-        G13_ERR("Error while reading keys: "
+        G13_ERR("Error: "
                 << error << " ("
                 << G13_Device::describe_libusb_error_code(error) << ")");
       }
-      libusb_handle_events(libusbContext);
-      wakeup.wait_for(wakelock, std::chrono::milliseconds(100));
-      G13_DBG("Poll wakeup");
+      // libusb_handle_events(libusbContext);
+      // wakeup.wait_for(wakelock, std::chrono::milliseconds(100));
+      // wakeup.wait(wakelock);
+      // std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      G13_DBG("USB Event wakeup");
     }
-    for (auto &g13 : g13s) {
+    for (auto g13 : g13s) {
       int status = g13->read_keys();
       g13->read_commands();
       if (status < 0) {
