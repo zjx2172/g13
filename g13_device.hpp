@@ -34,7 +34,7 @@ namespace G13 {
     class G13_Device {
     public:
 
-        G13_Device(libusb_device_handle *handle, int id);
+        G13_Device(libusb_device *dev, libusb_device_handle *handle, int id);
 
         G13_LCD &lcd() { return _lcd; }
 
@@ -91,6 +91,8 @@ namespace G13 {
 
         [[nodiscard]] int id_within_manager() const { return _id_within_manager; }
 
+        static std::string describe_libusb_error_code(int code);
+
         // typedef boost::function<void(const char*)> COMMAND_FUNCTION;
         typedef std::function<void(const char *)> COMMAND_FUNCTION;
         typedef std::map<std::string, COMMAND_FUNCTION> CommandFunctionTable;
@@ -100,9 +102,11 @@ namespace G13 {
             _manager = manager;
         }
 */
+      libusb_device_handle *Handle() const;
+      libusb_device *Device() const;
 
     protected:
-        void _init_fonts();
+        void InitFonts();
 
         void init_lcd();
 
@@ -115,7 +119,6 @@ namespace G13 {
         struct input_event _event;
 
         int _id_within_manager;
-        libusb_device_handle *handle;
         libusb_context *ctx;
 
         int _uinput_fid;
@@ -134,6 +137,10 @@ namespace G13 {
         G13_Stick _stick;
 
         bool keys[G13_NUM_KEYS];
+
+    private:
+      libusb_device_handle *handle;
+      libusb_device *device;
     };
 
 /*

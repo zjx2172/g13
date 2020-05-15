@@ -23,7 +23,7 @@ namespace G13 {
             memset(bits_regular, 0, CHAR_BUF_SIZE);
             memset(bits_inverted, 0, CHAR_BUF_SIZE);
         }
-        void set_character(unsigned char* data, int width, unsigned flags);
+        void SetCharacter(unsigned char* data, int width, unsigned flags);
         unsigned char bits_regular[CHAR_BUF_SIZE]{};
         unsigned char bits_inverted[CHAR_BUF_SIZE]{};
     };
@@ -33,21 +33,21 @@ namespace G13 {
         G13_Font();
         explicit G13_Font(const std::string& name, unsigned int width = 8);
 
-        // void set_character(unsigned int c, unsigned char* data);
+        // void SetCharacter(unsigned int c, unsigned char* data);
 
         template <class ARRAY_T, class FLAGST>
-        void install_font(ARRAY_T& data, FLAGST flags, int first = 0);
+        void InstallFont(ARRAY_T& data, FLAGST flags, int first = 0);
 
         [[nodiscard]] const std::string& name() const { return m_name; }
-        [[nodiscard]] unsigned int width() const { return _width; }
+        [[nodiscard]] unsigned int width() const { return m_width; }
 
-        const G13_FontChar& char_data(unsigned int x) { return _chars[x]; }
+        const G13_FontChar& char_data(unsigned int x) { return m_chars[x]; }
 
     protected:
         std::string m_name;
-        unsigned int _width;
+        unsigned int m_width;
 
-        G13_FontChar _chars[256];
+        G13_FontChar m_chars[256];
 
         // unsigned char font_basic[256][8];
         // unsigned char font_inverted[256][8];

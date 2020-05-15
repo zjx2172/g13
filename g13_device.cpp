@@ -17,8 +17,8 @@
 namespace G13 {
 // *************************************************************************
 
-G13_Device::G13_Device(libusb_device_handle *handle, int _id)
-    : _lcd(*this), _stick(*this), handle(handle), _id_within_manager(_id),
+G13_Device::G13_Device(libusb_device *dev, libusb_device_handle *handle, int _id)
+    : _lcd(*this), _stick(*this), device(dev), handle(handle), _id_within_manager(_id),
       _uinput_fid(-1), ctx(nullptr) {
   _current_profile = std::make_shared<G13_Profile>(*this, "default");
   _profiles["default"] = _current_profile;
@@ -29,13 +29,13 @@ G13_Device::G13_Device(libusb_device_handle *handle, int _id)
 
   lcd().image_clear();
 
-  _init_fonts();
+  InitFonts();
   _init_commands();
 }
 
 // *************************************************************************
 
-static std::string describe_libusb_error_code(int code) {
+std::string G13_Device::describe_libusb_error_code(int code) {
   auto description = std::string(libusb_error_name(code)) + " " +
                      std::string(libusb_strerror((libusb_error)code));
   return std::move(description);
@@ -454,7 +454,7 @@ void G13_Device::_init_commands() {
                               [this](const char *remainder) {
                                 std::string level;
                                 advance_ws(remainder, level);
-                                G13_Manager::Instance()->set_log_level(level);
+                                G13_Manager::Instance()->SetLogLevel(level);
                               });
 
   command_adder add_refresh(
@@ -525,5 +525,13 @@ void G13_Device::cleanup() {
   libusb_release_interface(handle, 0);
   libusb_close(handle);
 }
+
+  libusb_device_handle *G13_Device::Handle() const {
+    return handle;
+  }
+
+  libusb_device *G13_Device::Device() const {
+    return device;
+  }
 
 } // namespace G13

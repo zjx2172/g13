@@ -364,20 +364,20 @@ unsigned char font5x8[][5] = {
     {0x18, 0xA2, 0xA0, 0xA2, 0x78}   // 0xFF ÿ
 };
 
-G13_Font::G13_Font() : m_name("default"), _width(8) {}
+G13_Font::G13_Font() : m_name("default"), m_width(8) {}
 
-G13_Font::G13_Font(const std::string& name, unsigned int width) : m_name(name), _width(width) {}
+G13_Font::G13_Font(const std::string& name, unsigned int width) : m_name(name), m_width(width) {}
 
-void G13_FontChar::set_character(unsigned char* data, int width, unsigned flags) {
+void G13_FontChar::SetCharacter(unsigned char* data, int width, unsigned flags) {
     unsigned char* dest = bits_regular;
     memset(dest, 0, CHAR_BUF_SIZE);
     if (flags & FF_ROTATE) {
-        for (int x = 0; x < width; x++) {
-            unsigned char x_mask = (unsigned char) 1 << x;
-            for (int y = 0; y < 8; y++) {
+        for (unsigned int x = 0; x < width; x++) {
+            unsigned char x_mask = (unsigned char) 1u << x;
+            for (unsigned int y = 0; y < 8; y++) {
                 // unsigned char y_mask = 1 << y;
                 if (data[y] & x_mask) {
-                    dest[x] |= 1 << y;
+                    dest[x] |= 1u << y;
                 }
             }
         }
@@ -395,19 +395,19 @@ int GetFontCharacterCount(T (&)[size]) {
 }
 
 template <class ARRAY_T, class FLAGST>
-void G13_Font::install_font(ARRAY_T& data, FLAGST flags, int first) {
+void G13_Font::InstallFont(ARRAY_T& data, FLAGST flags, int first) {
     for (size_t i = 0; i < GetFontCharacterCount(data); i++) {
-        _chars[i + first].set_character(&data[i][0], _width, flags);
+      m_chars[i + first].SetCharacter(&data[i][0], m_width, flags);
     }
 }
-void G13_Device::_init_fonts() {
+void G13_Device::InitFonts() {
     _current_font = FontPtr(new G13_Font("8x8", 8));
     _fonts[_current_font->name()] = _current_font;
 
-    _current_font->install_font(font8x8_basic, G13_FontChar::FF_ROTATE, 0);
+  _current_font->InstallFont(font8x8_basic, G13_FontChar::FF_ROTATE, 0);
 
     FontPtr fiveXeight(new G13_Font("5x8", 5));
-    fiveXeight->install_font(font5x8, 0, 32);
+  fiveXeight->InstallFont(font5x8, 0, 32);
     _fonts[fiveXeight->name()] = fiveXeight;
 }
 

@@ -137,7 +137,7 @@ void G13_LCD::write_char(char c, unsigned int row, unsigned int col) {
     }
 
     unsigned offset = image_byte_offset(row * G13_LCD_TEXT_CHEIGHT,
-                                        col);  //*_keypad._current_font->_width );
+                                        col);  //*_keypad._current_font->m_width );
     if (text_mode) {
         memcpy(&image_buf[offset], &_keypad.current_font().char_data(c).bits_inverted,
                _keypad.current_font().width());
