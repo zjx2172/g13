@@ -17,11 +17,11 @@
 namespace G13 {
 // *************************************************************************
 
-G13_Device::G13_Device(libusb_device *dev, libusb_device_handle *handle, int _id)
-    : _lcd(*this), _stick(*this), device(dev), handle(handle), _id_within_manager(_id),
-      _uinput_fid(-1), ctx(nullptr) {
-  _current_profile = std::make_shared<G13_Profile>(*this, "default");
-  _profiles["default"] = _current_profile;
+G13_Device::G13_Device(libusb_device *dev, libusb_device_handle *handle, int m_id)
+    : m_lcd(*this), m_stick(*this), device(dev), handle(handle), m_id_within_manager(m_id),
+      m_uinput_fid(-1), ctx(nullptr) {
+  m_currentProfile = std::make_shared<G13_Profile>(*this, "default");
+  m_profiles["default"] = m_currentProfile;
 
   for (bool &key : keys) {
     key = false;
@@ -30,11 +30,12 @@ G13_Device::G13_Device(libusb_device *dev, libusb_device_handle *handle, int _id
   lcd().image_clear();
 
   InitFonts();
-  _init_commands();
+  InitCommands();
 }
 
 // *************************************************************************
 
+// TODO: use this more
 std::string G13_Device::describe_libusb_error_code(int code) {
   auto description = std::string(libusb_error_name(code)) + " " +
                      std::string(libusb_strerror((libusb_error)code));
@@ -125,11 +126,11 @@ void G13_Device::send_event(int type, int code, int val) {
   _event.type = type;
   _event.code = code;
   _event.value = val;
-  write(_uinput_fid, &_event, sizeof(_event));
+  write(m_uinput_fid, &_event, sizeof(_event));
 }
 
 void G13_Device::write_output_pipe(const std::string &out) const {
-  write(_output_pipe_fid, out.c_str(), out.size());
+  write(m_output_pipe_fid, out.c_str(), out.size());
 }
 
 void G13_Device::set_mode_leds(int leds) {
@@ -180,7 +181,7 @@ int G13_Device::read_keys() {
   }
   if (size == G13_REPORT_SIZE) {
     parse_joystick(buffer);
-    _current_profile->ParseKeys(buffer);
+    m_currentProfile->ParseKeys(buffer);
     send_event(EV_SYN, SYN_REPORT, 0);
   }
   return 0;
@@ -217,15 +218,15 @@ void G13_Device::read_config_file(const std::string &filename) {
 void G13_Device::read_commands() {
   fd_set set;
   FD_ZERO(&set);
-  FD_SET(_input_pipe_fid, &set);
+  FD_SET(m_input_pipe_fid, &set);
   struct timeval tv {};
   tv.tv_sec = 0;
   tv.tv_usec = 0;
-  int ret = select(_input_pipe_fid + 1, &set, nullptr, nullptr, &tv);
+  int ret = select(m_input_pipe_fid + 1, &set, nullptr, nullptr, &tv);
   if (ret > 0) {
     unsigned char buf[1024 * 1024];
     memset(buf, 0, 1024 * 1024);
-    ret = read(_input_pipe_fid, buf, 1024 * 1024);
+    ret = read(m_input_pipe_fid, buf, 1024 * 1024);
     G13_LOG(log4cpp::Priority::DEBUG << "read " << ret << " characters");
 
     if (ret ==
@@ -250,22 +251,22 @@ void G13_Device::read_commands() {
 }
 
 FontPtr G13_Device::switch_to_font(const std::string &name) {
-  FontPtr rv = _fonts[name];
+  FontPtr rv = pFonts[name];
   if (rv) {
-    _current_font = rv;
+    m_currentFont = rv;
   }
   return rv;
 }
 
 void G13_Device::switch_to_profile(const std::string &name) {
-  _current_profile = profile(name);
+  m_currentProfile = profile(name);
 }
 
 ProfilePtr G13_Device::profile(const std::string &name) {
-  ProfilePtr rv = _profiles[name];
+  ProfilePtr rv = m_profiles[name];
   if (!rv) {
-    rv = std::make_shared<G13_Profile>(*_current_profile, name);
-    _profiles[name] = rv;
+    rv = std::make_shared<G13_Profile>(*m_currentProfile, name);
+    m_profiles[name] = rv;
   }
   return rv;
 }
@@ -289,18 +290,18 @@ G13_ActionPtr G13_Device::make_action(const std::string &action) {
 
 void G13_Device::dump(std::ostream &o, int detail) {
   o << "G13 id=" << id_within_manager() << std::endl;
-  o << "   input_pipe_name=" << Helper::repr(_input_pipe_name) << std::endl;
-  o << "   output_pipe_name=" << Helper::repr(_output_pipe_name) << std::endl;
-  o << "   current_profile=" << _current_profile->name() << std::endl;
-  o << "   current_font=" << _current_font->name() << std::endl;
+  o << "   input_pipe_name=" << Helper::repr(m_input_pipe_name) << std::endl;
+  o << "   output_pipe_name=" << Helper::repr(m_output_pipe_name) << std::endl;
+  o << "   current_profile=" << m_currentProfile->name() << std::endl;
+  o << "   current_font=" << m_currentFont->name() << std::endl;
 
   if (detail > 0) {
     o << "STICK" << std::endl;
     stick().dump(o);
     if (detail == 1) {
-      _current_profile->dump(o);
+      m_currentProfile->dump(o);
     } else {
-      for (auto &_profile : _profiles) {
+      for (auto &_profile : m_profiles) {
         _profile.second->dump(o);
       }
     }
@@ -326,7 +327,7 @@ struct command_adder {
   };
 };
 
-void G13_Device::_init_commands() {
+void G13_Device::InitCommands() {
   using Helper::advance_ws;
   // const char *remainder;
 
@@ -348,9 +349,9 @@ void G13_Device::_init_commands() {
     advance_ws(remainder, keyname);
     std::string action = remainder;
     try {
-      if (auto key = _current_profile->FindKey(keyname)) {
+      if (auto key = m_currentProfile->FindKey(keyname)) {
         key->set_action(make_action(action));
-      } else if (auto stick_key = _stick.zone(keyname)) {
+      } else if (auto stick_key = m_stick.zone(keyname)) {
         stick_key->set_action(make_action(action));
       } else {
         G13_ERR("bind key " << keyname << " unknown");
@@ -398,7 +399,7 @@ void G13_Device::_init_commands() {
         int index = 0;
         for (auto &test : modes) {
           if (test == mode) {
-            _stick.set_mode((G13::stick_mode_t)index);
+            m_stick.set_mode((G13::stick_mode_t)index);
             return;
           }
           index++;
@@ -413,9 +414,9 @@ void G13_Device::_init_commands() {
         advance_ws(remainder, zonename);
         if (operation == "add") {
           /* G13_StickZone* zone = */
-          _stick.zone(zonename, true);
+          m_stick.zone(zonename, true);
         } else {
-          G13_StickZone *zone = _stick.zone(zonename);
+          G13_StickZone *zone = m_stick.zone(zonename);
           if (!zone) {
             throw G13_CommandException("unknown stick zone");
           }
@@ -429,7 +430,7 @@ void G13_Device::_init_commands() {
             zone->set_bounds(G13_ZoneBounds(x1, y1, x2, y2));
 
           } else if (operation == "del") {
-            _stick.remove_zone(*zone);
+            m_stick.remove_zone(*zone);
           } else {
             G13_ERR("unknown stickzone operation: <" << operation << ">");
           }
@@ -489,39 +490,39 @@ void G13_Device::command(char const *str) {
   }
 }
 
-void G13_Device::register_context(libusb_context *_ctx) {
-  ctx = _ctx;
+void G13_Device::register_context(libusb_context *libusbContext) {
+  ctx = libusbContext;
 
   int leds = 0;
   int red = 0;
   int green = 0;
   int blue = 255;
-  init_lcd();
+  InitLcd();
 
   set_mode_leds(leds);
   set_key_color(red, green, blue);
 
   write_lcd(g13_logo, sizeof(g13_logo));
 
-  _uinput_fid = g13_create_uinput(this);
+  m_uinput_fid = g13_create_uinput(this);
 
-  _input_pipe_name = G13_Manager::Instance()->MakePipeName(this, true);
-  _input_pipe_fid = g13_create_fifo(_input_pipe_name.c_str());
-  if (_input_pipe_fid == -1) {
-    G13_ERR("failed opening input pipe " << _input_pipe_name);
+  m_input_pipe_name = G13_Manager::Instance()->MakePipeName(this, true);
+  m_input_pipe_fid = g13_create_fifo(m_input_pipe_name.c_str());
+  if (m_input_pipe_fid == -1) {
+    G13_ERR("failed opening input pipe " << m_input_pipe_name);
   }
-  _output_pipe_name = G13_Manager::Instance()->MakePipeName(this, false);
-  _output_pipe_fid = g13_create_fifo(_output_pipe_name.c_str());
-  if (_output_pipe_fid == -1) {
-    G13_ERR("failed opening output pipe " << _output_pipe_name);
+  m_output_pipe_name = G13_Manager::Instance()->MakePipeName(this, false);
+  m_output_pipe_fid = g13_create_fifo(m_output_pipe_name.c_str());
+  if (m_output_pipe_fid == -1) {
+    G13_ERR("failed opening output pipe " << m_output_pipe_name);
   }
 }
 
 void G13_Device::cleanup() {
-  remove(_input_pipe_name.c_str());
-  remove(_output_pipe_name.c_str());
-  ioctl(_uinput_fid, UI_DEV_DESTROY);
-  close(_uinput_fid);
+  remove(m_input_pipe_name.c_str());
+  remove(m_output_pipe_name.c_str());
+  ioctl(m_uinput_fid, UI_DEV_DESTROY);
+  close(m_uinput_fid);
   libusb_release_interface(handle, 0);
   libusb_close(handle);
 }

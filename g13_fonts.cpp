@@ -401,14 +401,14 @@ void G13_Font::InstallFont(ARRAY_T& data, FLAGST flags, int first) {
     }
 }
 void G13_Device::InitFonts() {
-    _current_font = FontPtr(new G13_Font("8x8", 8));
-    _fonts[_current_font->name()] = _current_font;
+  m_currentFont = FontPtr(new G13_Font("8x8", 8));
+  pFonts[m_currentFont->name()] = m_currentFont;
 
-  _current_font->InstallFont(font8x8_basic, G13_FontChar::FF_ROTATE, 0);
+  m_currentFont->InstallFont(font8x8_basic, G13_FontChar::FF_ROTATE, 0);
 
     FontPtr fiveXeight(new G13_Font("5x8", 5));
   fiveXeight->InstallFont(font5x8, 0, 32);
-    _fonts[fiveXeight->name()] = fiveXeight;
+  pFonts[fiveXeight->name()] = fiveXeight;
 }
 
 }  // namespace G13

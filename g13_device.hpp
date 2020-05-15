@@ -34,15 +34,15 @@ namespace G13 {
     class G13_Device {
     public:
 
-        G13_Device(libusb_device *dev, libusb_device_handle *handle, int id);
+        G13_Device(libusb_device *dev, libusb_device_handle *handle, int m_id);
 
-        G13_LCD &lcd() { return _lcd; }
+        G13_LCD &lcd() { return m_lcd; }
 
-        [[nodiscard]] const G13_LCD &lcd() const { return _lcd; }
+        [[nodiscard]] const G13_LCD &lcd() const { return m_lcd; }
 
-        G13_Stick &stick() { return _stick; }
+        G13_Stick &stick() { return m_stick; }
 
-        [[nodiscard]] const G13_Stick &stick() const { return _stick; }
+        [[nodiscard]] const G13_Stick &stick() const { return m_stick; }
 
         FontPtr switch_to_font(const std::string &name);
 
@@ -81,15 +81,15 @@ namespace G13 {
         // used by G13_Manager
         void cleanup();
 
-        void register_context(libusb_context *ctx);
+        void register_context(libusb_context *libusbContext);
 
         void write_lcd_file(const std::string &filename);
 
-        G13_Font &current_font() { return *_current_font; }
+        G13_Font &current_font() { return *m_currentFont; }
 
-        G13_Profile &current_profile() { return *_current_profile; }
+        G13_Profile &current_profile() { return *m_currentProfile; }
 
-        [[nodiscard]] int id_within_manager() const { return _id_within_manager; }
+        [[nodiscard]] int id_within_manager() const { return m_id_within_manager; }
 
         static std::string describe_libusb_error_code(int code);
 
@@ -108,9 +108,9 @@ namespace G13 {
     protected:
         void InitFonts();
 
-        void init_lcd();
+        void InitLcd();
 
-        void _init_commands();
+        void InitCommands();
 
         // typedef void (COMMAND_FUNCTION)( G13_Device*, const char *, const char * );
         CommandFunctionTable _command_table;
@@ -118,23 +118,23 @@ namespace G13 {
         // struct timeval _event_time;
         struct input_event _event;
 
-        int _id_within_manager;
+        int m_id_within_manager;
         libusb_context *ctx;
 
-        int _uinput_fid;
+        int m_uinput_fid;
 
-        int _input_pipe_fid;
-        std::string _input_pipe_name;
-        int _output_pipe_fid;
-        std::string _output_pipe_name;
+        int m_input_pipe_fid;
+        std::string m_input_pipe_name;
+        int m_output_pipe_fid;
+        std::string m_output_pipe_name;
 
-        std::map<std::string, FontPtr> _fonts;
-        FontPtr _current_font;
-        std::map<std::string, ProfilePtr> _profiles;
-        ProfilePtr _current_profile;
+        std::map<std::string, FontPtr> pFonts;
+        FontPtr m_currentFont;
+        std::map<std::string, ProfilePtr> m_profiles;
+        ProfilePtr m_currentProfile;
 
-        G13_LCD _lcd;
-        G13_Stick _stick;
+        G13_LCD m_lcd;
+        G13_Stick m_stick;
 
         bool keys[G13_NUM_KEYS];
 

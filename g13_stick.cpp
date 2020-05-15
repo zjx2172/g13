@@ -8,7 +8,7 @@ namespace G13 {
 // *************************************************************************
 
 void G13_Device::parse_joystick(unsigned char* buf) {
-    _stick.parse_joystick(buf);
+    m_stick.parse_joystick(buf);
 }
 
 G13_Stick::G13_Stick(G13_Device& keypad)

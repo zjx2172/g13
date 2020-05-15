@@ -18,79 +18,84 @@
          A0.01 A1.01 A2.01 ...
  */
 
+#include "g13.hpp"
+#include "g13_device.hpp"
+#include "g13_fonts.hpp"
+#include "logo.hpp"
 #include <fstream>
 #include <iostream>
 #include <log4cpp/Category.hh>
-#include "logo.hpp"
-#include "g13_device.hpp"
-#include "g13_fonts.hpp"
-#include "g13.hpp"
 
 namespace G13 {
 
-    void G13_Device::init_lcd() {
-        int error = libusb_control_transfer(handle, 0, 9, 1, 0, nullptr, 0, 1000);
-        if (error) {
-            G13_LOG(log4cpp::Priority::ERROR << "Error when initializing lcd endpoint");
-        }
-    }
-
-    void G13_Device::write_lcd(unsigned char* data, size_t size) {
-        init_lcd();
-        if (size != G13_LCD_BUFFER_SIZE) {
-            G13_LOG(log4cpp::Priority::ERROR << "Invalid LCD data size " << size << ", should be "
-                                             << G13_LCD_BUFFER_SIZE);
-            return;
-        }
-        unsigned char buffer[G13_LCD_BUFFER_SIZE + 32];
-        memset(buffer, 0, G13_LCD_BUFFER_SIZE + 32);
-        buffer[0] = 0x03;
-        memcpy(buffer + 32, data, G13_LCD_BUFFER_SIZE);
-        int bytes_written;
-        int error = libusb_interrupt_transfer(handle, LIBUSB_ENDPOINT_OUT | G13_LCD_ENDPOINT, buffer,
-                                              G13_LCD_BUFFER_SIZE + 32, &bytes_written, 1000);
-        if (error) {
-            G13_LOG(log4cpp::Priority::ERROR << "Error when transferring image: " << error << ", "
-                                             << bytes_written << " bytes written");
-        }
-    }
-
-    void G13_Device::write_lcd_file(const std::string& filename) {
-        std::filebuf* pbuf;
-        std::ifstream filestr;
-        size_t size;
-
-        filestr.open(filename.c_str());
-        pbuf = filestr.rdbuf();
-
-        size = pbuf->pubseekoff(0, std::ios::end, std::ios::in);
-        pbuf->pubseekpos(0, std::ios::in);
-
-        char buffer[size];
-
-        pbuf->sgetn(buffer, size);
-
-        filestr.close();
-        write_lcd((unsigned char*)buffer, size);
-    }
-
-void G13_LCD::image(unsigned char* data, int size) {
-    _keypad.write_lcd(data, size);
+void G13_Device::InitLcd() {
+  int error = libusb_control_transfer(handle, 0, 9, 1, 0, nullptr, 0, 1000);
+  if (error) {
+    G13_LOG(log4cpp::Priority::ERROR
+            << "Error when initializing lcd endpoint: " << error << " ("
+            << libusb_error_name(error) << ")");
+  }
 }
 
-G13_LCD::G13_LCD(G13_Device& keypad) : _keypad(keypad) {
-    cursor_col = 0;
-    cursor_row = 0;
-    text_mode = 0;
+void G13_Device::write_lcd(unsigned char *data, size_t size) {
+  InitLcd();
+  if (size != G13_LCD_BUFFER_SIZE) {
+    G13_LOG(log4cpp::Priority::ERROR << "Invalid LCD data size " << size
+                                     << ", should be " << G13_LCD_BUFFER_SIZE);
+    return;
+  }
+  unsigned char buffer[G13_LCD_BUFFER_SIZE + 32];
+  memset(buffer, 0, G13_LCD_BUFFER_SIZE + 32);
+  buffer[0] = 0x03;
+  memcpy(buffer + 32, data, G13_LCD_BUFFER_SIZE);
+  int bytes_written;
+  int error = libusb_interrupt_transfer(
+      handle, LIBUSB_ENDPOINT_OUT | G13_LCD_ENDPOINT, buffer,
+      G13_LCD_BUFFER_SIZE + 32, &bytes_written, 1000);
+  if (error) {
+    G13_LOG(log4cpp::Priority::ERROR
+            << "Error when transferring image: " << error << ", "
+            << bytes_written << " bytes written");
+  }
+}
+
+void G13_Device::write_lcd_file(const std::string &filename) {
+  std::filebuf *pbuf;
+  std::ifstream filestr;
+  size_t size;
+
+  filestr.open(filename.c_str());
+  pbuf = filestr.rdbuf();
+
+  size = pbuf->pubseekoff(0, std::ios::end, std::ios::in);
+  pbuf->pubseekpos(0, std::ios::in);
+
+  char buffer[size];
+
+  pbuf->sgetn(buffer, size);
+
+  filestr.close();
+  write_lcd((unsigned char *)buffer, size);
+}
+
+void G13_LCD::image(unsigned char *data, int size) {
+  _keypad.write_lcd(data, size);
+}
+
+G13_LCD::G13_LCD(G13_Device &keypad) : _keypad(keypad) {
+  cursor_col = 0;
+  cursor_row = 0;
+  text_mode = 0;
 }
 
 /*
 void G13_LCD::image_setpixel(unsigned row, unsigned col) {
-    unsigned offset = image_byte_offset(row, col);  // col + (row /8 ) * BYTES_PER_ROW * 8;
-    unsigned char mask = 1 << ((row)&7);
+    unsigned offset = image_byte_offset(row, col);  // col + (row /8 ) *
+BYTES_PER_ROW * 8; unsigned char mask = 1 << ((row)&7);
 
     if (offset >= G13_LCD_BUF_SIZE) {
-        G13_LOG(log4cpp::Priority::ERROR << "bad offset " << offset << " for " << (row) << " x "
+        G13_LOG(log4cpp::Priority::ERROR << "bad offset " << offset << " for "
+<< (row) << " x "
                                          << (col));
         return;
     }
@@ -101,11 +106,12 @@ void G13_LCD::image_setpixel(unsigned row, unsigned col) {
 
 /*
 void G13_LCD::image_clearpixel(unsigned row, unsigned col) {
-    unsigned offset = image_byte_offset(row, col);  // col + (row /8 ) * BYTES_PER_ROW * 8;
-    unsigned char mask = 1 << ((row)&7);
+    unsigned offset = image_byte_offset(row, col);  // col + (row /8 ) *
+BYTES_PER_ROW * 8; unsigned char mask = 1 << ((row)&7);
 
     if (offset >= G13_LCD_BUF_SIZE) {
-        G13_LOG(log4cpp::Priority::ERROR << "bad offset " << offset << " for " << (row) << " x "
+        G13_LOG(log4cpp::Priority::ERROR << "bad offset " << offset << " for "
+<< (row) << " x "
                                          << (col));
         return;
     }
@@ -114,61 +120,63 @@ void G13_LCD::image_clearpixel(unsigned row, unsigned col) {
 */
 
 void G13_LCD::write_pos(int row, int col) {
-    cursor_row = row;
-    cursor_col = col;
-    if (cursor_col >= G13_LCD_COLUMNS) {
-        cursor_col = 0;
-    }
-    if (cursor_row >= G13_LCD_TEXT_ROWS) {
-        cursor_row = 0;
-    }
+  cursor_row = row;
+  cursor_col = col;
+  if (cursor_col >= G13_LCD_COLUMNS) {
+    cursor_col = 0;
+  }
+  if (cursor_row >= G13_LCD_TEXT_ROWS) {
+    cursor_row = 0;
+  }
 }
 void G13_LCD::write_char(char c, unsigned int row, unsigned int col) {
-    if (row == -1) {
-        row = cursor_row;
-        col = cursor_col;
-        cursor_col += _keypad.current_font().width();
-        if (cursor_col >= G13_LCD_COLUMNS) {
-            cursor_col = 0;
-            if (++cursor_row >= G13_LCD_TEXT_ROWS) {
-                cursor_row = 0;
-            }
-        }
+  if (row == -1) {
+    row = cursor_row;
+    col = cursor_col;
+    cursor_col += _keypad.current_font().width();
+    if (cursor_col >= G13_LCD_COLUMNS) {
+      cursor_col = 0;
+      if (++cursor_row >= G13_LCD_TEXT_ROWS) {
+        cursor_row = 0;
+      }
     }
+  }
 
-    unsigned offset = image_byte_offset(row * G13_LCD_TEXT_CHEIGHT,
-                                        col);  //*_keypad._current_font->m_width );
-    if (text_mode) {
-        memcpy(&image_buf[offset], &_keypad.current_font().char_data(c).bits_inverted,
-               _keypad.current_font().width());
-    } else {
-        memcpy(&image_buf[offset], &_keypad.current_font().char_data(c).bits_regular,
-               _keypad.current_font().width());
-    }
+  unsigned offset = image_byte_offset(row * G13_LCD_TEXT_CHEIGHT,
+                                      col); //*_keypad.m_currentFont->m_width );
+  if (text_mode) {
+    memcpy(&image_buf[offset],
+           &_keypad.current_font().char_data(c).bits_inverted,
+           _keypad.current_font().width());
+  } else {
+    memcpy(&image_buf[offset],
+           &_keypad.current_font().char_data(c).bits_regular,
+           _keypad.current_font().width());
+  }
 }
 
-void G13_LCD::write_string(const char* str) {
-    G13_OUT("writing \"" << str << "\"");
-    while (*str) {
-        if (*str == '\n') {
-            cursor_col = 0;
-            if (++cursor_row >= G13_LCD_TEXT_ROWS) {
-                cursor_row = 0;
-            }
-        } else if (*str == '\t') {
-            cursor_col += 4 - (cursor_col % 4);
-            if (++cursor_col >= G13_LCD_COLUMNS) {
-                cursor_col = 0;
-                if (++cursor_row >= G13_LCD_TEXT_ROWS) {
-                    cursor_row = 0;
-                }
-            }
-        } else {
-            write_char(*str);
+void G13_LCD::write_string(const char *str) {
+  G13_OUT("writing \"" << str << "\"");
+  while (*str) {
+    if (*str == '\n') {
+      cursor_col = 0;
+      if (++cursor_row >= G13_LCD_TEXT_ROWS) {
+        cursor_row = 0;
+      }
+    } else if (*str == '\t') {
+      cursor_col += 4 - (cursor_col % 4);
+      if (++cursor_col >= G13_LCD_COLUMNS) {
+        cursor_col = 0;
+        if (++cursor_row >= G13_LCD_TEXT_ROWS) {
+          cursor_row = 0;
         }
-        ++str;
+      }
+    } else {
+      write_char(*str);
     }
-    image_send();
+    ++str;
+  }
+  image_send();
 }
 
 /*
@@ -204,4 +212,4 @@ void G13_LCD::image_test(int x, int y) {
 }
 */
 
-}  // namespace G13
+} // namespace G13
