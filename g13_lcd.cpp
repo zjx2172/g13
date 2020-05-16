@@ -30,9 +30,11 @@ namespace G13 {
 
 void G13_Device::InitLcd() {
   int error = libusb_control_transfer(handle, 0, 9, 1, 0, nullptr, 0, 1000);
-  if (error) {
-    G13_ERR("Error when initializing lcd endpoint: "
+  if (error != LIBUSB_SUCCESS) {
+    G13_ERR("Error when initializing LCD endpoint: "
             << G13_Device::DescribeLibusbErrorCode(error));
+  } else {
+    write_lcd(g13_logo, sizeof(g13_logo));
   }
 }
 

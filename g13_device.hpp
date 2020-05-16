@@ -79,9 +79,9 @@ namespace G13 {
         bool update(int key, bool v);
 
         // used by G13_Manager
-        void cleanup();
+        void Cleanup();
 
-        void register_context(libusb_context *libusbContext);
+        void RegisterContext(libusb_context *libusbContext);
 
         void write_lcd_file(const std::string &filename);
 
@@ -116,16 +116,16 @@ namespace G13 {
         CommandFunctionTable _command_table;
 
         // struct timeval _event_time;
-        struct input_event _event;
+        struct input_event _event{};
 
         int m_id_within_manager;
         libusb_context *m_ctx;
 
         int m_uinput_fid;
 
-        int m_input_pipe_fid;
+        int m_input_pipe_fid{};
         std::string m_input_pipe_name;
-        int m_output_pipe_fid;
+        int m_output_pipe_fid{};
         std::string m_output_pipe_name;
 
         std::map<std::string, FontPtr> pFonts;
@@ -136,7 +136,7 @@ namespace G13 {
         G13_LCD m_lcd;
         G13_Stick m_stick;
 
-        bool keys[G13_NUM_KEYS];
+        bool keys[G13_NUM_KEYS]{};
 
     private:
       libusb_device_handle *handle;

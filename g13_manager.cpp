@@ -2,24 +2,16 @@
 // Created by khampf on 13-05-2020.
 //
 
-#include "logo.hpp"
-
-#include <chrono>
 #include <csignal>
 #include <libevdev-1.0/libevdev/libevdev.h>
 #include <log4cpp/OstreamAppender.hh>
 #include <memory>
 #include <mutex>
-#include <thread>
-
 #include "helper.hpp"
-
 #include "g13_keys.hpp"
-
 #include "g13.hpp"
 #include "g13_device.hpp"
 #include "g13_manager.hpp"
-#include "g13_hotplug.hpp"
 
 namespace G13 {
 
@@ -27,7 +19,6 @@ namespace G13 {
 bool G13_Manager::running = true;
 std::map<std::string, std::string> G13_Manager::stringConfigValues;
 libusb_context *G13_Manager::libusbContext;
-std::condition_variable G13_Manager::wakeup;
 std::vector<G13::G13_Device *> G13_Manager::g13s;
 libusb_hotplug_callback_handle G13_Manager::hotplug_cb_handle[3];
 const int G13_Manager::class_id = LIBUSB_HOTPLUG_MATCH_ANY;
@@ -78,8 +69,9 @@ void G13_Manager::SetLogLevel(const std::string &level) {
   for (auto handle : hotplug_cb_handle) {
     libusb_hotplug_deregister_callback(libusbContext, handle);
   }
+  // TODO: This might be better with an iterator and also g13s.erase(iter)
   for (auto g13 : g13s) {
-    g13->cleanup();
+    g13->Cleanup();
     delete g13;
   }
   libusb_exit(libusbContext);
@@ -133,7 +125,7 @@ void G13_Manager::InitKeynames() {
 void G13_Manager::SignalHandler(int signal) {
   G13_OUT("Caught signal " << signal << " (" << strsignal(signal) << ")");
   running = false;
-  wakeup.notify_all();
+  // TODO: Should we break usblib handling with a reset?
 }
 
 std::string G13_Manager::getStringConfigValue(const std::string &name) {
@@ -254,10 +246,6 @@ int G13_Manager::Run() {
       Cleanup();
       return EXIT_FAILURE;
     }
-
-    for (auto &g13 : g13s) {
-      SetupDevice(g13);
-    }
   } else {
     ArmHotplugCallbacks();
   }
@@ -265,11 +253,16 @@ int G13_Manager::Run() {
   signal(SIGINT, SignalHandler);
   signal(SIGTERM, SignalHandler);
 
+  for (auto g13 : g13s) {
+    // This can not be done from the event handler (will give LIBUSB_ERROR_BUSY)
+    SetupDevice(g13);
+  }
+
   do {
     if (g13s.empty()) {
       G13_OUT("Waiting for device to show up ...");
       error = libusb_handle_events(libusbContext);
-      G13_DBG("USB Event wakeup");
+      G13_DBG("USB Event wakeup with " << g13s.size() << " devices registered");
       if (error != LIBUSB_SUCCESS) {
         G13_ERR("Error: " << G13_Device::DescribeLibusbErrorCode(error));
       } else {

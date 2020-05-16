@@ -27,7 +27,6 @@ private:
   static bool running;
   static std::map<std::string, std::string> stringConfigValues;
   static libusb_context *libusbContext;
-  static std::condition_variable wakeup;
   static std::vector<G13::G13_Device *> g13s;
   static libusb_hotplug_callback_handle hotplug_cb_handle[3];
   static std::map<G13_KEY_INDEX, std::string> g13_key_to_name;
@@ -42,10 +41,7 @@ public:
   static G13_Manager *
   Instance(); // Singleton pattern instead of passing references around
 
-  static libusb_context *getCtx();
-  static void setCtx(libusb_context *libusbContext);
-
-  static const std::string &getLogoFilename();
+  // static const std::string &getLogoFilename();
   static void setLogoFilename(const std::string &logoFilename);
 
   [[nodiscard]] static int FindG13KeyValue(const std::string &keyname);

@@ -73,13 +73,17 @@ int G13::G13_Manager::OpenAndAddG13(libusb_device *dev) {
 int LIBUSB_CALL G13::G13_Manager::HotplugCallbackEnumerate(
     struct libusb_context *ctx, struct libusb_device *dev,
     libusb_hotplug_event event, void *user_data) {
+
+  G13_OUT("USB device found during enumeration");
   HotplugCallbackInsert(ctx, dev, event, user_data);
+/*
   for (auto g13 : g13s) {
     if (dev == g13->Device()) {
       SetupDevice(g13);
     }
   }
-  return 0;
+*/
+  return 1;
 }
 
 int LIBUSB_CALL G13::G13_Manager::HotplugCallbackInsert(
@@ -109,7 +113,7 @@ int LIBUSB_CALL G13::G13_Manager::HotplugCallbackRemove(
   for (auto iter = g13s.begin(); (iter != g13s.end()); ++i) {
     if (dev == (*iter)->Device()) {
       G13_OUT("Closing device " << i);
-      (*iter)->cleanup();
+      (*iter)->Cleanup();
       iter = g13s.erase(iter);
     } else {
       iter++;
@@ -120,7 +124,8 @@ int LIBUSB_CALL G13::G13_Manager::HotplugCallbackRemove(
 
 void G13::G13_Manager::SetupDevice(G13_Device *g13) {
 
-  g13->register_context(libusbContext);
+  G13_OUT("Setting up device ");
+  g13->RegisterContext(libusbContext);
   if (!logoFilename.empty()) {
     g13->write_lcd_file(logoFilename);
   }

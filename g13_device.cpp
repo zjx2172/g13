@@ -4,7 +4,6 @@
 
 #include <fstream>
 #include <unistd.h>
-// #include <libnet.h>
 #include "g13.hpp"
 #include "g13_device.hpp"
 #include "g13_fonts.hpp"
@@ -124,7 +123,7 @@ int g13_create_uinput(G13_Device *g13) {
 
 void G13_Device::send_event(int type, int code, int val) {
   memset(&_event, 0, sizeof(_event));
-  gettimeofday(&_event.time, 0);
+  gettimeofday(&_event.time, nullptr);
   _event.type = type;
   _event.code = code;
   _event.value = val;
@@ -138,11 +137,11 @@ void G13_Device::write_output_pipe(const std::string &out) const {
 void G13_Device::set_mode_leds(int leds) {
   unsigned char usb_data[] = {5, 0, 0, 0, 0};
   usb_data[1] = leds;
-  int r = libusb_control_transfer(
+  int error = libusb_control_transfer(
       handle, LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE, 9, 0x305,
       0, usb_data, 5, 1000);
-  if (r != 5) {
-    G13_ERR("Problem sending data");
+  if (error != 5) {
+    G13_ERR("Problem setting mode LEDs: " + DescribeLibusbErrorCode(error));
     return;
   }
 }
@@ -158,7 +157,7 @@ void G13_Device::set_key_color(int red, int green, int blue) {
       handle, LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE, 9, 0x307,
       0, usb_data, 5, 1000);
   if (error != 5) {
-    G13_ERR("Problem sending data: " + DescribeLibusbErrorCode(error));
+    G13_ERR("Problem changing color: " + DescribeLibusbErrorCode(error));
     return;
   }
 }
@@ -491,7 +490,7 @@ void G13_Device::command(char const *str) {
   }
 }
 
-void G13_Device::register_context(libusb_context *libusbContext) {
+void G13_Device::RegisterContext(libusb_context *libusbContext) {
   m_ctx = libusbContext;
 
   int leds = 0;
@@ -502,8 +501,6 @@ void G13_Device::register_context(libusb_context *libusbContext) {
 
   set_mode_leds(leds);
   set_key_color(red, green, blue);
-
-  write_lcd(g13_logo, sizeof(g13_logo));
 
   m_uinput_fid = g13_create_uinput(this);
   m_input_pipe_name = G13_Manager::Instance()->MakePipeName(this, true);
@@ -518,7 +515,7 @@ void G13_Device::register_context(libusb_context *libusbContext) {
   }
 }
 
-void G13_Device::cleanup() {
+void G13_Device::Cleanup() {
   remove(m_input_pipe_name.c_str());
   remove(m_output_pipe_name.c_str());
   ioctl(m_uinput_fid, UI_DEV_DESTROY);
@@ -535,4 +532,4 @@ void G13_Device::cleanup() {
     return device;
   }
 
-} // namespace G131et 2fgZXCV
+} // namespace G13
