@@ -17,6 +17,8 @@ add_executable(g13
         g13_device.cpp
         g13_fonts.hpp
         g13_fonts.cpp
+        g13_hotplug.hpp
+        g13_hotplug.cpp
         g13_keys.hpp
         g13_keys.cpp
         g13_lcd.hpp
