@@ -31,9 +31,8 @@ namespace G13 {
 void G13_Device::InitLcd() {
   int error = libusb_control_transfer(handle, 0, 9, 1, 0, nullptr, 0, 1000);
   if (error) {
-    G13_LOG(log4cpp::Priority::ERROR
-            << "Error when initializing lcd endpoint: " << error << " ("
-            << libusb_error_name(error) << ")");
+    G13_ERR("Error when initializing lcd endpoint: "
+            << G13_Device::DescribeLibusbErrorCode(error));
   }
 }
 
@@ -53,9 +52,9 @@ void G13_Device::write_lcd(unsigned char *data, size_t size) {
       handle, LIBUSB_ENDPOINT_OUT | G13_LCD_ENDPOINT, buffer,
       G13_LCD_BUFFER_SIZE + 32, &bytes_written, 1000);
   if (error) {
-    G13_LOG(log4cpp::Priority::ERROR
-            << "Error when transferring image: " << error << ", "
-            << bytes_written << " bytes written");
+    G13_LOG(log4cpp::Priority::ERROR << "Error when transferring image: "
+                                     << DescribeLibusbErrorCode(error) << ", "
+                                     << bytes_written << " bytes written");
   }
 }
 

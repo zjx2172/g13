@@ -34,7 +34,7 @@ namespace G13 {
     class G13_Device {
     public:
 
-        G13_Device(libusb_device *dev, libusb_device_handle *handle, int m_id);
+        G13_Device(libusb_device *dev, libusb_context *ctx, libusb_device_handle *handle, int m_id);
 
         G13_LCD &lcd() { return m_lcd; }
 
@@ -91,7 +91,7 @@ namespace G13 {
 
         [[nodiscard]] int id_within_manager() const { return m_id_within_manager; }
 
-        static std::string describe_libusb_error_code(int code);
+        static std::string DescribeLibusbErrorCode(int code);
 
         // typedef boost::function<void(const char*)> COMMAND_FUNCTION;
         typedef std::function<void(const char *)> COMMAND_FUNCTION;
@@ -119,7 +119,7 @@ namespace G13 {
         struct input_event _event;
 
         int m_id_within_manager;
-        libusb_context *ctx;
+        libusb_context *m_ctx;
 
         int m_uinput_fid;
 

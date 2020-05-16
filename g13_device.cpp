@@ -17,9 +17,9 @@
 namespace G13 {
 // *************************************************************************
 
-G13_Device::G13_Device(libusb_device *dev, libusb_device_handle *handle, int m_id)
+G13_Device::G13_Device(libusb_device *dev, libusb_context *ctx, libusb_device_handle *handle, int m_id)
     : m_lcd(*this), m_stick(*this), device(dev), handle(handle), m_id_within_manager(m_id),
-      m_uinput_fid(-1), ctx(nullptr) {
+      m_uinput_fid(-1), m_ctx(ctx) {
   m_currentProfile = std::make_shared<G13_Profile>(*this, "default");
   m_profiles["default"] = m_currentProfile;
 
@@ -35,10 +35,12 @@ G13_Device::G13_Device(libusb_device *dev, libusb_device_handle *handle, int m_i
 
 // *************************************************************************
 
-// TODO: use this more
-std::string G13_Device::describe_libusb_error_code(int code) {
-  auto description = std::string(libusb_error_name(code)) + " " +
+std::string G13_Device::DescribeLibusbErrorCode(int code) {
+/*
+  auto description = std::string(libusb_error_name(code)) + " (" + std::to_string(code) + ") - " +
                      std::string(libusb_strerror((libusb_error)code));
+*/
+  auto description = std::string(libusb_strerror((libusb_error)code));
   return std::move(description);
   // return "unknown error";
 }
@@ -156,7 +158,7 @@ void G13_Device::set_key_color(int red, int green, int blue) {
       handle, LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE, 9, 0x307,
       0, usb_data, 5, 1000);
   if (error != 5) {
-    G13_ERR("Problem sending data");
+    G13_ERR("Problem sending data: " + DescribeLibusbErrorCode(error));
     return;
   }
 }
@@ -172,11 +174,10 @@ int G13_Device::read_keys() {
                                 buffer, G13_REPORT_SIZE, &size, 100);
 
   if (error && error != LIBUSB_ERROR_TIMEOUT) {
-    G13_ERR("Error while reading keys: "
-            << error << " (" << describe_libusb_error_code(error) << ")");
+    G13_ERR("Error while reading keys: " << DescribeLibusbErrorCode(error));
     if (error == LIBUSB_ERROR_NO_DEVICE || error == LIBUSB_ERROR_IO) {
       G13_DBG("Giving libusb a nudge");
-      libusb_handle_events(ctx);
+      libusb_handle_events(m_ctx);
     }
   }
   if (size == G13_REPORT_SIZE) {
@@ -491,7 +492,7 @@ void G13_Device::command(char const *str) {
 }
 
 void G13_Device::register_context(libusb_context *libusbContext) {
-  ctx = libusbContext;
+  m_ctx = libusbContext;
 
   int leds = 0;
   int red = 0;
@@ -505,7 +506,6 @@ void G13_Device::register_context(libusb_context *libusbContext) {
   write_lcd(g13_logo, sizeof(g13_logo));
 
   m_uinput_fid = g13_create_uinput(this);
-
   m_input_pipe_name = G13_Manager::Instance()->MakePipeName(this, true);
   m_input_pipe_fid = g13_create_fifo(m_input_pipe_name.c_str());
   if (m_input_pipe_fid == -1) {
@@ -535,4 +535,4 @@ void G13_Device::cleanup() {
     return device;
   }
 
-} // namespace G13
+} // namespace G131et 2fgZXCV

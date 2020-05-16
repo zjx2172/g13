@@ -29,7 +29,7 @@ private:
   static libusb_context *libusbContext;
   static std::condition_variable wakeup;
   static std::vector<G13::G13_Device *> g13s;
-  static libusb_hotplug_callback_handle hotplug_cb_handle[2];
+  static libusb_hotplug_callback_handle hotplug_cb_handle[3];
   static std::map<G13_KEY_INDEX, std::string> g13_key_to_name;
   static std::map<std::string, G13_KEY_INDEX> g13_name_to_key;
   static std::map<LINUX_KEY_VALUE, std::string> input_key_to_name;
@@ -86,6 +86,11 @@ protected:
   static void SignalHandler(int);
 
   static void SetupDevice(G13::G13_Device *g13);
+
+  static int LIBUSB_CALL HotplugCallbackEnumerate(struct libusb_context *ctx,
+                                               struct libusb_device *dev,
+                                               libusb_hotplug_event event,
+                                               void *user_data);
 
   static int LIBUSB_CALL HotplugCallbackInsert(struct libusb_context *ctx,
                                                struct libusb_device *dev,
