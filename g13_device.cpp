@@ -518,6 +518,7 @@ void G13_Device::RegisterContext(libusb_context *libusbContext) {
 }
 
 void G13_Device::Cleanup() {
+  set_key_color(0,0,0);
   remove(m_input_pipe_name.c_str());
   remove(m_output_pipe_name.c_str());
   ioctl(m_uinput_fid, UI_DEV_DESTROY);

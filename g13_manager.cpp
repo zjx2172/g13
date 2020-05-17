@@ -40,6 +40,7 @@ void G13_Manager::Cleanup() {
   }
   // TODO: This might be better with an iterator and also g13s.erase(iter)
   for (auto g13 : g13s) {
+
     g13->Cleanup();
     delete g13;
   }
