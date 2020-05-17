@@ -16,17 +16,21 @@
 #include "g13_manager.hpp"
 #include "g13_profile.hpp"
 
-class MockManager : public G13_Manager {
+/*
+class MockManager : public G13::G13_Manager {
    public:
     // MOCK_METHOD0(Run,void());
 };
+*/
 
 class MockDevice : public G13::G13_Device {
    public:
-    MockDevice(G13_Manager& manager) : G13_Device(manager, nullptr, 0) {}
+  //  G13_Device(libusb_device *dev, libusb_context *ctx,
+  //             libusb_device_handle *handle, int m_id);
+    MockDevice(G13::G13_Manager& manager) : G13_Device(nullptr, nullptr, nullptr, 0) {}
 };
 
-class MockProfile : public G13_Profile {
+class MockProfile : public G13::G13_Profile {
    public:
     MockProfile(G13::G13_Device& device) : G13_Profile(device, std::string("mock")) {}
 };
@@ -41,10 +45,10 @@ class MockProfile : public G13_Profile {
 //};
 
 TEST(G13Key, g13_key_maps_to_value) {
-    MockManager manager;
-    
-    EXPECT_EQ(manager.find_g13_key_value("G1"), 0);
-    EXPECT_EQ(manager.find_g13_key_value("G22"), 21);
+    G13::G13_Manager* manager = G13::G13_Manager::Instance();
+
+    EXPECT_EQ((*manager).FindG13KeyValue("G1"), 0);
+    EXPECT_EQ((*manager).FindG13KeyValue("G22"), 21);
     // G13::G13_Device device = MockDevice(manager);
     // G13::G13_Profile profile = MockProfile(device);
 
