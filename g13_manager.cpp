@@ -2,16 +2,14 @@
 // Created by khampf on 13-05-2020.
 //
 
+#include "g13_manager.hpp"
+#include "g13_device.hpp"
+#include "g13_keys.hpp"
+#include "helper.hpp"
 #include <csignal>
 #include <libevdev-1.0/libevdev/libevdev.h>
 #include <log4cpp/OstreamAppender.hh>
 #include <memory>
-#include <mutex>
-#include "helper.hpp"
-#include "g13_keys.hpp"
-#include "g13.hpp"
-#include "g13_device.hpp"
-#include "g13_manager.hpp"
 
 namespace G13 {
 
@@ -35,36 +33,7 @@ G13_Manager::G13_Manager() /* : libusbContext(nullptr), devs(nullptr)*/ {
   InitKeynames();
 }
 
-void G13_Manager::start_logging() {
-  log4cpp::Appender *appender1 =
-      new log4cpp::OstreamAppender("console", &std::cout);
-  appender1->setLayout(new log4cpp::BasicLayout());
-  log4cpp::Category &root = log4cpp::Category::getRoot();
-  root.addAppender(appender1);
-
-  // TODO: this is for later when --log_file is implemented
-  //    log4cpp::Appender *appender2 = new log4cpp::FileAppender("default",
-  //    "g13d-output.log"); appender2->setLayout(new log4cpp::BasicLayout());
-  //    log4cpp::Category &sub1 =
-  //    log4cpp::Category::getInstance(std::string("sub1"));
-  //    sub1.addAppender(appender2);
-}
-
-  void G13_Manager::SetLogLevel(log4cpp::Priority::PriorityLevel lvl) {
-  G13_OUT("set log level to " << lvl);
-}
-
-void G13_Manager::SetLogLevel(const std::string &level) {
-  log4cpp::Category &root = log4cpp::Category::getRoot();
-  try {
-    auto numLevel = log4cpp::Priority::getPriorityValue(level);
-    root.setPriority(numLevel);
-  } catch (std::invalid_argument &e) {
-    G13_ERR("unknown log level " << level);
-  }
-}
-
-  void G13_Manager::Cleanup() {
+void G13_Manager::Cleanup() {
   G13_OUT("Cleaning up");
   for (auto handle : hotplug_cb_handle) {
     libusb_hotplug_deregister_callback(libusbContext, handle);
@@ -168,7 +137,7 @@ std::string G13_Manager::MakePipeName(G13::G13_Device *d, bool is_input) {
   }
 }
 
-  G13::LINUX_KEY_VALUE G13_Manager::FindG13KeyValue(const std::string &keyname) {
+G13::LINUX_KEY_VALUE G13_Manager::FindG13KeyValue(const std::string &keyname) {
   auto i = g13_name_to_key.find(keyname);
   if (i == g13_name_to_key.end()) {
     return G13::BAD_KEY_VALUE;
@@ -198,7 +167,7 @@ std::string G13_Manager::FindInputKeyName(G13::LINUX_KEY_VALUE v) {
   }
 }
 
-  std::string G13_Manager::FindG13KeyName(G13::G13_KEY_INDEX v) {
+std::string G13_Manager::FindG13KeyName(G13::G13_KEY_INDEX v) {
   try {
     return Helper::find_or_throw(g13_key_to_name, v);
   } catch (...) {
@@ -267,7 +236,8 @@ int G13_Manager::Run() {
         G13_ERR("Error: " << G13_Device::DescribeLibusbErrorCode(error));
       } else {
         for (auto g13 : g13s) {
-          // This can not be done from the event handler (will give LIBUSB_ERROR_BUSY)
+          // This can not be done from the event handler (will give
+          // LIBUSB_ERROR_BUSY)
           SetupDevice(g13);
         }
       }

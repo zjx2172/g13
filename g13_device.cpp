@@ -2,23 +2,24 @@
 // Created by khampf on 07-05-2020.
 //
 
-#include <fstream>
-#include <unistd.h>
-#include "g13.hpp"
 #include "g13_device.hpp"
+#include "g13.hpp"
 #include "g13_fonts.hpp"
 #include "g13_log.hpp"
 #include "g13_manager.hpp"
 #include "g13_profile.hpp"
 #include "g13_stick.hpp"
 #include "logo.hpp"
+#include <fstream>
+#include <unistd.h>
 
 namespace G13 {
 // *************************************************************************
 
-G13_Device::G13_Device(libusb_device *dev, libusb_context *ctx, libusb_device_handle *handle, int m_id)
-    : m_lcd(*this), m_stick(*this), device(dev), handle(handle), m_id_within_manager(m_id),
-      m_uinput_fid(-1), m_ctx(ctx) {
+G13_Device::G13_Device(libusb_device *dev, libusb_context *ctx,
+                       libusb_device_handle *handle, int m_id)
+    : m_lcd(*this), m_stick(*this), device(dev), handle(handle),
+      m_id_within_manager(m_id), m_uinput_fid(-1), m_ctx(ctx) {
   m_currentProfile = std::make_shared<G13_Profile>(*this, "default");
   m_profiles["default"] = m_currentProfile;
 
@@ -35,10 +36,11 @@ G13_Device::G13_Device(libusb_device *dev, libusb_context *ctx, libusb_device_ha
 // *************************************************************************
 
 std::string G13_Device::DescribeLibusbErrorCode(int code) {
-/*
-  auto description = std::string(libusb_error_name(code)) + " (" + std::to_string(code) + ") - " +
-                     std::string(libusb_strerror((libusb_error)code));
-*/
+  /*
+    auto description = std::string(libusb_error_name(code)) + " (" +
+    std::to_string(code) + ") - " +
+                       std::string(libusb_strerror((libusb_error)code));
+  */
   auto description = std::string(libusb_strerror((libusb_error)code));
   return std::move(description);
   // return "unknown error";
@@ -524,12 +526,8 @@ void G13_Device::Cleanup() {
   libusb_close(handle);
 }
 
-  libusb_device_handle *G13_Device::Handle() const {
-    return handle;
-  }
+// libusb_device_handle *G13_Device::Handle() const { return handle; }
 
-  libusb_device *G13_Device::Device() const {
-    return device;
-  }
+libusb_device *G13_Device::Device() const { return device; }
 
 } // namespace G13

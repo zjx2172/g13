@@ -34,7 +34,7 @@ class MockProfile : public G13_Profile {
 // class MockProfile : public G13::G13_Profile {
 // public:
 //    G13_Profile(G13_Device& keypad, const std::string& name_arg)
-//    : _keypad(keypad), m_name(name_arg) {
+//    : m_keypad(keypad), m_name(name_arg) {
 //        _init_keys();
 //
 //    }    MOCK_METHOD0(_init_keys, void());

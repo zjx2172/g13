@@ -4,144 +4,142 @@
 #ifndef G13_G13_DEVICE_HPP
 #define G13_G13_DEVICE_HPP
 
-#include <libusb-1.0/libusb.h>
-#include <functional>
-#include <linux/uinput.h>
-#include <memory>
-#include <map>
 #include "g13_lcd.hpp"
-#include "g13_stick.hpp"
 #include "g13_manager.hpp"
 #include "g13_profile.hpp"
-
+#include "g13_stick.hpp"
+#include <functional>
+#include <libusb-1.0/libusb.h>
+#include <linux/uinput.h>
+#include <map>
+#include <memory>
 
 namespace G13 {
 // *************************************************************************
 
-    class G13_Profile;
-    class G13_Action;
-    class G13_Manager;
+class G13_Profile;
+class G13_Action;
+class G13_Manager;
 
+class G13_Font;
 
-    class G13_Font;
+typedef std::shared_ptr<G13_Profile> ProfilePtr;
+typedef std::shared_ptr<G13_Action> G13_ActionPtr;
+typedef std::shared_ptr<G13_Font> FontPtr;
 
-    typedef std::shared_ptr<G13_Profile> ProfilePtr;
-    typedef std::shared_ptr<G13_Action> G13_ActionPtr;
-    typedef std::shared_ptr<G13_Font> FontPtr;
+const size_t G13_NUM_KEYS = 40;
 
-    const size_t G13_NUM_KEYS = 40;
+class G13_Device {
+public:
+  G13_Device(libusb_device *dev, libusb_context *ctx,
+             libusb_device_handle *handle, int m_id);
 
-    class G13_Device {
-    public:
+  G13_LCD &lcd() { return m_lcd; }
 
-        G13_Device(libusb_device *dev, libusb_context *ctx, libusb_device_handle *handle, int m_id);
+  // [[nodiscard]] const G13_LCD &lcd() const { return m_lcd; }
 
-        G13_LCD &lcd() { return m_lcd; }
+  G13_Stick &stick() { return m_stick; }
 
-        [[nodiscard]] const G13_LCD &lcd() const { return m_lcd; }
+  // [[nodiscard]] const G13_Stick &stick() const { return m_stick; }
 
-        G13_Stick &stick() { return m_stick; }
+  FontPtr switch_to_font(const std::string &name);
 
-        [[nodiscard]] const G13_Stick &stick() const { return m_stick; }
+  void switch_to_profile(const std::string &name);
 
-        FontPtr switch_to_font(const std::string &name);
+  ProfilePtr profile(const std::string &name);
 
-        void switch_to_profile(const std::string &name);
+  void dump(std::ostream &, int detail = 0);
 
-        ProfilePtr profile(const std::string &name);
+  void command(char const *str);
 
-        void dump(std::ostream &, int detail = 0);
+  void read_commands();
 
-        void command(char const *str);
+  void read_config_file(const std::string &filename);
 
-        void read_commands();
+  int read_keys();
 
-        void read_config_file(const std::string &filename);
+  void parse_joystick(unsigned char *buf);
 
-        int read_keys();
+  G13_ActionPtr make_action(const std::string &);
 
-        void parse_joystick(unsigned char *buf);
+  void set_key_color(int red, int green, int blue);
 
-        G13_ActionPtr make_action(const std::string &);
+  void set_mode_leds(int leds);
 
-        void set_key_color(int red, int green, int blue);
+  void send_event(int type, int code, int val);
 
-        void set_mode_leds(int leds);
+  void write_output_pipe(const std::string &out) const;
 
-        void send_event(int type, int code, int val);
+  void write_lcd(unsigned char *data, size_t size);
 
-        void write_output_pipe(const std::string &out) const;
+  // bool is_set(int key);
 
-        void write_lcd(unsigned char *data, size_t size);
+  bool update(int key, bool v);
 
-        bool is_set(int key);
+  // used by G13_Manager
+  void Cleanup();
 
-        bool update(int key, bool v);
+  void RegisterContext(libusb_context *libusbContext);
 
-        // used by G13_Manager
-        void Cleanup();
+  void write_lcd_file(const std::string &filename);
 
-        void RegisterContext(libusb_context *libusbContext);
+  G13_Font &current_font() { return *m_currentFont; }
 
-        void write_lcd_file(const std::string &filename);
+  // G13_Profile &current_profile() { return *m_currentProfile; }
 
-        G13_Font &current_font() { return *m_currentFont; }
+  [[nodiscard]] int id_within_manager() const { return m_id_within_manager; }
 
-        G13_Profile &current_profile() { return *m_currentProfile; }
+  static std::string DescribeLibusbErrorCode(int code);
 
-        [[nodiscard]] int id_within_manager() const { return m_id_within_manager; }
+  // typedef boost::function<void(const char*)> COMMAND_FUNCTION;
+  typedef std::function<void(const char *)> COMMAND_FUNCTION;
+  typedef std::map<std::string, COMMAND_FUNCTION> CommandFunctionTable;
 
-        static std::string DescribeLibusbErrorCode(int code);
+  /*
+          void setManager(G13_Manager manager) {
+              _manager = manager;
+          }
+  */
+  // libusb_device_handle *Handle() const;
+  libusb_device *Device() const;
 
-        // typedef boost::function<void(const char*)> COMMAND_FUNCTION;
-        typedef std::function<void(const char *)> COMMAND_FUNCTION;
-        typedef std::map<std::string, COMMAND_FUNCTION> CommandFunctionTable;
+protected:
+  void InitFonts();
 
-/*
-        void setManager(G13_Manager manager) {
-            _manager = manager;
-        }
-*/
-      libusb_device_handle *Handle() const;
-      libusb_device *Device() const;
+  void InitLcd();
 
-    protected:
-        void InitFonts();
+  void InitCommands();
 
-        void InitLcd();
+  // typedef void (COMMAND_FUNCTION)( G13_Device*, const char *, const char * );
+  CommandFunctionTable _command_table;
 
-        void InitCommands();
+  // struct timeval _event_time;
+  struct input_event _event {};
 
-        // typedef void (COMMAND_FUNCTION)( G13_Device*, const char *, const char * );
-        CommandFunctionTable _command_table;
+  int m_id_within_manager;
+  libusb_context *m_ctx;
 
-        // struct timeval _event_time;
-        struct input_event _event{};
+  int m_uinput_fid;
 
-        int m_id_within_manager;
-        libusb_context *m_ctx;
+  int m_input_pipe_fid{};
+  std::string m_input_pipe_name;
+  int m_output_pipe_fid{};
+  std::string m_output_pipe_name;
 
-        int m_uinput_fid;
+  std::map<std::string, FontPtr> pFonts;
+  FontPtr m_currentFont;
+  std::map<std::string, ProfilePtr> m_profiles;
+  ProfilePtr m_currentProfile;
 
-        int m_input_pipe_fid{};
-        std::string m_input_pipe_name;
-        int m_output_pipe_fid{};
-        std::string m_output_pipe_name;
+  G13_LCD m_lcd;
+  G13_Stick m_stick;
 
-        std::map<std::string, FontPtr> pFonts;
-        FontPtr m_currentFont;
-        std::map<std::string, ProfilePtr> m_profiles;
-        ProfilePtr m_currentProfile;
+  bool keys[G13_NUM_KEYS]{};
 
-        G13_LCD m_lcd;
-        G13_Stick m_stick;
-
-        bool keys[G13_NUM_KEYS]{};
-
-    private:
-      libusb_device_handle *handle;
-      libusb_device *device;
-    };
+private:
+  libusb_device_handle *handle;
+  libusb_device *device;
+};
 
 /*
 inline bool G13_Device::is_set(int key) {
@@ -149,12 +147,11 @@ inline bool G13_Device::is_set(int key) {
 }
 */
 
-    inline bool G13_Device::update(int key, bool v) {
-        bool old = keys[key];
-        keys[key] = v;
-        return old != v;
-    }
+inline bool G13_Device::update(int key, bool v) {
+  bool old = keys[key];
+  keys[key] = v;
+  return old != v;
+}
 } // namespace G13
 
-#endif //G13_G13_DEVICE_HPP
-
+#endif // G13_G13_DEVICE_HPP

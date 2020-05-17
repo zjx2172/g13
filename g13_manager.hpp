@@ -8,9 +8,9 @@
 #include "g13.hpp"
 #include "g13_action.hpp"
 #include "g13_device.hpp"
+#include "g13_keys.hpp"
 #include "g13_log.hpp"
 #include "g13_manager.hpp"
-#include <condition_variable>
 #include <libusb-1.0/libusb.h>
 
 #define CONTROL_DIR std::string("/tmp/")
@@ -84,9 +84,9 @@ protected:
   static void SetupDevice(G13::G13_Device *g13);
 
   static int LIBUSB_CALL HotplugCallbackEnumerate(struct libusb_context *ctx,
-                                               struct libusb_device *dev,
-                                               libusb_hotplug_event event,
-                                               void *user_data);
+                                                  struct libusb_device *dev,
+                                                  libusb_hotplug_event event,
+                                                  void *user_data);
 
   static int LIBUSB_CALL HotplugCallbackInsert(struct libusb_context *ctx,
                                                struct libusb_device *dev,

@@ -7,9 +7,7 @@
 #include "g13.hpp"
 #include "g13_device.hpp"
 #include "g13_keys.hpp"
-#include "g13_profile.hpp"
 #include "helper.hpp"
-#include <libevdev-1.0/libevdev/libevdev.h>
 // clang-format on
 
 namespace G13 {

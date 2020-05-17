@@ -32,45 +32,45 @@
 
 namespace Helper {
 
-void string_repr_out::write_on(std::ostream& o) const {
-    o << "\"";
-    const char* cp = s.c_str();
-    const char* end = cp + s.size();
+void string_repr_out::write_on(std::ostream &o) const {
+  o << "\"";
+  const char *cp = s.c_str();
+  const char *end = cp + s.size();
 
-    while (cp < end) {
-        switch (*cp) {
-            case '\n':
-                o << "\\n";
-                break;
-            case '\r':
-                o << "\\r";
-                break;
-            case '\0':
-                o << "\\0";
-                break;
-            case '\t':
-                o << "\\t";
-                break;
-            case '\\':
-            case '\'':
-            case '\"':
-                o << "\\" << *cp;
-                break;
-            default: {
-                unsigned char c = *cp;
-                if (c < 32) {
-                    unsigned char hi = '0' + (c & 0x0fu);
-                    unsigned char lo = '0' + ((unsigned char)(c >> 4u) & 0x0fu);
-                    o << "\\x" << hi << lo;
-                } else {
-                    o << c;
-                }
-            }
-        }
-        cp++;
+  while (cp < end) {
+    switch (*cp) {
+    case '\n':
+      o << "\\n";
+      break;
+    case '\r':
+      o << "\\r";
+      break;
+    case '\0':
+      o << "\\0";
+      break;
+    case '\t':
+      o << "\\t";
+      break;
+    case '\\':
+    case '\'':
+    case '\"':
+      o << "\\" << *cp;
+      break;
+    default: {
+      unsigned char c = *cp;
+      if (c < 32) {
+        unsigned char hi = '0' + (c & 0x0fu);
+        unsigned char lo = '0' + ((unsigned char)(c >> 4u) & 0x0fu);
+        o << "\\x" << hi << lo;
+      } else {
+        o << c;
+      }
     }
+    }
+    cp++;
+  }
 
-    o << "\"";
+  o << "\"";
 }
 
 } // namespace Helper

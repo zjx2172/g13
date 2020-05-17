@@ -76,13 +76,13 @@ int LIBUSB_CALL G13::G13_Manager::HotplugCallbackEnumerate(
 
   G13_OUT("USB device found during enumeration");
   HotplugCallbackInsert(ctx, dev, event, user_data);
-/*
-  for (auto g13 : g13s) {
-    if (dev == g13->Device()) {
-      SetupDevice(g13);
+  /*
+    for (auto g13 : g13s) {
+      if (dev == g13->Device()) {
+        SetupDevice(g13);
+      }
     }
-  }
-*/
+  */
   return 1;
 }
 
@@ -176,4 +176,4 @@ void G13::G13_Manager::ArmHotplugCallbacks() {
   }
 }
 
-}
+} // namespace G13

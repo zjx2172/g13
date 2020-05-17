@@ -80,10 +80,10 @@ void G13_Device::write_lcd_file(const std::string &filename) {
 }
 
 void G13_LCD::image(unsigned char *data, int size) {
-  _keypad.write_lcd(data, size);
+  m_keypad.write_lcd(data, size);
 }
 
-G13_LCD::G13_LCD(G13_Device &keypad) : _keypad(keypad) {
+G13_LCD::G13_LCD(G13_Device &keypad) : m_keypad(keypad) {
   cursor_col = 0;
   cursor_row = 0;
   text_mode = 0;
@@ -134,7 +134,7 @@ void G13_LCD::write_char(char c, unsigned int row, unsigned int col) {
   if (row == -1) {
     row = cursor_row;
     col = cursor_col;
-    cursor_col += _keypad.current_font().width();
+    cursor_col += m_keypad.current_font().width();
     if (cursor_col >= G13_LCD_COLUMNS) {
       cursor_col = 0;
       if (++cursor_row >= G13_LCD_TEXT_ROWS) {
@@ -144,15 +144,15 @@ void G13_LCD::write_char(char c, unsigned int row, unsigned int col) {
   }
 
   unsigned offset = image_byte_offset(row * G13_LCD_TEXT_CHEIGHT,
-                                      col); //*_keypad.m_currentFont->m_width );
+                                      col); //*m_keypad.m_currentFont->m_width );
   if (text_mode) {
     memcpy(&image_buf[offset],
-           &_keypad.current_font().char_data(c).bits_inverted,
-           _keypad.current_font().width());
+           &m_keypad.current_font().char_data(c).bits_inverted,
+           m_keypad.current_font().width());
   } else {
     memcpy(&image_buf[offset],
-           &_keypad.current_font().char_data(c).bits_regular,
-           _keypad.current_font().width());
+           &m_keypad.current_font().char_data(c).bits_regular,
+           m_keypad.current_font().width());
   }
 }
 
