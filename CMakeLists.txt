@@ -9,7 +9,7 @@ include_directories(.)
 add_executable(pbm2lpbm
         pbm2lpbm.cpp)
 
-add_executable(g13
+add_executable(g13d
         g13.hpp
         g13_action.hpp
         g13_action.cpp
@@ -43,7 +43,7 @@ add_custom_target(version
         DEPENDS GIT-VERSION-GEN
         COMMENT "Checking version header ..."
 )
-add_dependencies(g13 version)
+add_dependencies(g13d version)
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/GIT-VERSION.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/GIT-VERSION-FILE")
@@ -76,5 +76,5 @@ add_executable(runtests
         logo.hpp
         testKeys.cpp)
 
-target_link_libraries (g13 usb-1.0 log4cpp evdev)
+target_link_libraries (g13d usb-1.0 log4cpp evdev)
 target_link_libraries (runtests usb-1.0 log4cpp evdev gtest gmock)
