@@ -1,11 +1,22 @@
 # Userspace driver for the G13
 
 ## This is a 100% boost free version
-You no longer need to rebuild this every other week when boost updates
+You no longer need to rebuild this every other week when boost updates. It started out as a quick rewrite but has turned out to be a refactoring job gone wild. It is not completely refactored but I have so far:
+
+* Removed all dependencies on boost libraries
+* Merged some work on adding support for additional keys and mouse clicks
+* Added support for USB hotplugging
+* Moved from regular Makefile to CMake
 
 ## Installation
 
 Make sure you have ~~boost~~ log4cpp, libevdev and libusb-1.0 installed.
+
+### For Archlinux
+
+Install [g13-git from AUR](https://github.com/khampf/g13)
+
+## OLD DOCUMENTATION FOLLOWS
 
 ### For Ubuntu (15.10)
 
