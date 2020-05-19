@@ -4,9 +4,12 @@
 You no longer need to rebuild this every other week when boost updates. It started out as a quick rewrite but has turned out to be a refactoring job gone wild. It is not completely refactored but I have so far:
 
 * Removed all dependencies on boost libraries
+* Fixed a couple of bugs (and probably introduced some others)
 * Merged some work on adding support for additional keys and mouse clicks
 * Added support for USB hotplugging
 * Moved from regular Makefile to CMake
+* Refactored by splitting up huge source files into smaller parts
+* Renamed lots of stuff to start transitioning towards something more like Mozilla coding style
 
 ## Installation
 
@@ -15,6 +18,15 @@ Make sure you have ~~boost~~ log4cpp, libevdev and libusb-1.0 installed.
 ### For Archlinux
 
 Install [g13-git from AUR](https://github.com/khampf/g13)
+
+### Building from source
+
+```
+$ cd <sourcedir>
+$ cmake -B build -S .
+$ cd build
+$ make
+```
 
 ## OLD DOCUMENTATION FOLLOWS
 
