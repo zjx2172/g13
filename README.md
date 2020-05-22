@@ -32,7 +32,7 @@ Make sure you have ~~boost~~ log4cpp, libevdev and libusb-1.0 installed.
 
 ### For Archlinux
 
-Install [g13-git from AUR](https://github.com/khampf/g13)
+Install [g13-git from AUR](https://aur.archlinux.org/packages/g13-git/)
 
 ### Building from source
 
