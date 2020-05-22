@@ -28,8 +28,8 @@ public:
   unsigned cursor_col;
   int text_mode;
 
-  void image(unsigned char *data, int size);
-  void image_send() { image(image_buf, G13_LCD_BUF_SIZE); }
+  void Image(unsigned char *data, int size);
+  void image_send() { Image(image_buf, G13_LCD_BUF_SIZE); }
 
   // void image_test(int x, int y);
   void image_clear() { memset(image_buf, 0, G13_LCD_BUF_SIZE); }
@@ -41,9 +41,9 @@ public:
   // void image_setpixel(unsigned row, unsigned col);
   // void image_clearpixel(unsigned row, unsigned col);
 
-  void write_char(char c, unsigned int row = -1, unsigned int col = -1);
-  void write_string(const char *str);
-  void write_pos(int row, int col);
+  void WriteChar(char c, unsigned int row = -1, unsigned int col = -1);
+  void WriteString(const char *str);
+  void WritePos(int row, int col);
 };
 } // namespace G13
 #endif // G13_G13_LCD_HPP

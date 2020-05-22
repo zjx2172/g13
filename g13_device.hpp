@@ -70,7 +70,7 @@ public:
 
   void write_output_pipe(const std::string &out) const;
 
-  void write_lcd(unsigned char *data, size_t size);
+  void LcdWrite(unsigned char *data, size_t size);
 
   // bool is_set(int key);
 
@@ -81,7 +81,7 @@ public:
 
   void RegisterContext(libusb_context *libusbContext);
 
-  void write_lcd_file(const std::string &filename);
+  void LcdWriteFile(const std::string &filename);
 
   G13_Font &current_font() { return *m_currentFont; }
 
@@ -106,7 +106,7 @@ public:
 protected:
   void InitFonts();
 
-  void InitLcd();
+  void LcdInit();
 
   void InitCommands();
 

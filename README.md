@@ -11,6 +11,16 @@ You no longer need to rebuild this every other week when boost updates. It start
 * Refactored by splitting up huge source files into smaller parts
 * Renamed lots of stuff to start transitioning towards something more like Mozilla coding style
 
+## Changelog
+* v1.0.4
+  * Fixed a major bug in LCD init (thanks to nihil)
+* v1.0.3
+  * Major refactoring work done
+* v1.0.2
+* v1.0.1
+* v1.0.0 Started a version scheme
+
+
 ## Installation
 
 Make sure you have ~~boost~~ log4cpp, libevdev and libusb-1.0 installed.

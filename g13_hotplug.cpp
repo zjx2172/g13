@@ -127,7 +127,7 @@ void G13::G13_Manager::SetupDevice(G13_Device *g13) {
   G13_OUT("Setting up device ");
   g13->RegisterContext(libusbContext);
   if (!logoFilename.empty()) {
-    g13->write_lcd_file(logoFilename);
+    g13->LcdWriteFile(logoFilename);
   }
 
   G13_OUT("Active Stick zones ");

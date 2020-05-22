@@ -233,7 +233,7 @@ void G13_Device::read_commands() {
 
     if (ret ==
         960) { // TODO probably image, for now, don't test, just assume image
-      lcd().image(buf, ret);
+      lcd().Image(buf, ret);
     } else {
       std::string buffer = reinterpret_cast<const char *>(buf);
       auto lines = Helper::split<std::vector<std::string>>(
@@ -334,13 +334,13 @@ void G13_Device::InitCommands() {
   // const char *remainder;
 
   command_adder add_out(_command_table, "out", [this](const char *remainder) {
-    lcd().write_string(remainder);
+    lcd().WriteString(remainder);
   });
 
   command_adder add_pos(_command_table, "pos", [this](const char *remainder) {
     int row, col;
     if (sscanf(remainder, "%i %i", &row, &col) == 2) {
-      lcd().write_pos(row, col);
+      lcd().WritePos(row, col);
     } else {
       G13_ERR("bad pos : " << remainder);
     }
@@ -499,7 +499,7 @@ void G13_Device::RegisterContext(libusb_context *libusbContext) {
   int red = 0;
   int green = 0;
   int blue = 255;
-  InitLcd();
+  LcdInit();
 
   set_mode_leds(leds);
   set_key_color(red, green, blue);
