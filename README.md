@@ -12,9 +12,10 @@ You no longer need to rebuild this every other week when boost updates. It start
 * Renamed lots of stuff to start transitioning towards something more like Mozilla coding style
 
 ## Changelog
-* v1.0.4 (in progress)
+* v1.0.4
   * Fixed a major bug in LCD init (thanks to [nihilman](https://github.com/nihilman))
-  * Hunting down a memory leak on hotplug
+  * Fixed a small memory leak on hotplug disconnect
+  * More methods renamed for style
 * v1.0.3
   * Major refactoring work continued
     (I just wanted something to show here as to not look too empty)
