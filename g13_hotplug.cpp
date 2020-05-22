@@ -75,14 +75,9 @@ int LIBUSB_CALL G13::G13_Manager::HotplugCallbackEnumerate(
     libusb_hotplug_event event, void *user_data) {
 
   G13_OUT("USB device found during enumeration");
+
+  // Call this as it would have been detected on connection later
   HotplugCallbackInsert(ctx, dev, event, user_data);
-  /*
-    for (auto g13 : g13s) {
-      if (dev == g13->Device()) {
-        SetupDevice(g13);
-      }
-    }
-  */
   return 1;
 }
 
@@ -100,7 +95,9 @@ int LIBUSB_CALL G13::G13_Manager::HotplugCallbackInsert(
 
   // It's brand new!
   OpenAndAddG13(dev);
-  // wakeup.notify_all();
+
+  // NOTE: can not SetupDevice() from this thread
+
   return 0; // Rearm
 }
 
@@ -113,8 +110,10 @@ int LIBUSB_CALL G13::G13_Manager::HotplugCallbackRemove(
   for (auto iter = g13s.begin(); (iter != g13s.end()); ++i) {
     if (dev == (*iter)->Device()) {
       G13_OUT("Closing device " << i);
-      (*iter)->Cleanup();
-      iter = g13s.erase(iter);
+      auto g13 = iter;
+      // (*g13)->Cleanup();
+      iter = g13s.erase(iter);  // remove from vector first
+      delete (*g13);            // delete the object after
     } else {
       iter++;
     }
@@ -136,7 +135,7 @@ void G13::G13_Manager::SetupDevice(G13_Device *g13) {
   std::string config_fn = getStringConfigValue("config");
   if (!config_fn.empty()) {
     G13_OUT("config_fn = " << config_fn);
-    g13->read_config_file(config_fn);
+    g13->ReadConfigFile(config_fn);
   }
 }
 

@@ -6,8 +6,6 @@
 #define G13_G13_STICK_HPP
 
 #include <vector>
-// #include "g13_device.hpp"
-// #include "g13.hpp"
 #include "helper.hpp"
 
 namespace G13 {
@@ -35,33 +33,33 @@ class G13_Stick {
 public:
   explicit G13_Stick(G13_Device &keypad);
 
-  void parse_joystick(const unsigned char *buf);
+  void ParseJoystick(const unsigned char *buf);
 
   void set_mode(stick_mode_t);
   G13_StickZone *zone(const std::string &, bool create = false);
-  void remove_zone(const G13_StickZone &zone);
+  void RemoveZone(const G13_StickZone &zone);
 
   /*
     [[nodiscard]] const std::vector<G13_StickZone> &zones() const {
-      return _zones;
+      return m_zones;
     }
   */
 
   void dump(std::ostream &) const;
 
 protected:
-  void _recalc_calibrated();
+  void RecalcCalibrated();
 
   G13_Device &_keypad;
-  std::vector<G13_StickZone> _zones;
+  std::vector<G13_StickZone> m_zones;
 
-  G13_StickBounds _bounds;
-  G13_StickCoord _center_pos;
-  G13_StickCoord _north_pos;
+  G13_StickBounds m_bounds;
+  G13_StickCoord m_center_pos;
+  G13_StickCoord m_north_pos;
 
-  G13_StickCoord _current_pos;
+  G13_StickCoord m_current_pos;
 
-  stick_mode_t _stick_mode;
+  stick_mode_t m_stick_mode;
 };
 
 } // namespace G13

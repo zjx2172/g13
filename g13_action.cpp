@@ -32,12 +32,12 @@ G13_Action_Keys::~G13_Action_Keys() = default;
 void G13_Action_Keys::act(G13_Device &g13, bool is_down) {
   if (is_down) {
     for (int &_key : _keys) {
-      g13.send_event(EV_KEY, _key, is_down);
+      g13.SendEvent(EV_KEY, _key, is_down);
       G13_LOG(log4cpp::Priority::DEBUG << "sending KEY DOWN " << _key);
     }
   } else {
     for (int i = _keys.size() - 1; i >= 0; i--) {
-      g13.send_event(EV_KEY, _keys[i], is_down);
+      g13.SendEvent(EV_KEY, _keys[i], is_down);
       G13_LOG(log4cpp::Priority::DEBUG << "sending KEY UP " << _keys[i]);
     }
   }
@@ -61,7 +61,7 @@ G13_Action_PipeOut::~G13_Action_PipeOut() = default;
 
 void G13_Action_PipeOut::act(G13_Device &kp, bool is_down) {
   if (is_down) {
-    kp.write_output_pipe(_out);
+    kp.OutputPipeWrite(_out);
   }
 }
 
@@ -76,7 +76,7 @@ G13_Action_Command::~G13_Action_Command() = default;
 
 void G13_Action_Command::act(G13_Device &kp, bool is_down) {
   if (is_down) {
-    keypad().command(_cmd.c_str());
+    keypad().Command(_cmd.c_str());
   }
 }
 

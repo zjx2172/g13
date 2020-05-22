@@ -33,6 +33,7 @@ class G13_Device {
 public:
   G13_Device(libusb_device *dev, libusb_context *ctx,
              libusb_device_handle *handle, int m_id);
+  ~G13_Device();
 
   G13_LCD &lcd() { return m_lcd; }
 
@@ -42,33 +43,33 @@ public:
 
   // [[nodiscard]] const G13_Stick &stick() const { return m_stick; }
 
-  FontPtr switch_to_font(const std::string &name);
+  FontPtr SwitchToFont(const std::string &name);
 
-  void switch_to_profile(const std::string &name);
+  void SwitchToProfile(const std::string &name);
 
-  ProfilePtr profile(const std::string &name);
+  ProfilePtr Profile(const std::string &name);
 
-  void dump(std::ostream &, int detail = 0);
+  void Dump(std::ostream &o, int detail = 0);
 
-  void command(char const *str);
+  void Command(char const *str);
 
-  void read_commands();
+  void ReadCommandsFromPipe();
 
-  void read_config_file(const std::string &filename);
+  void ReadConfigFile(const std::string &filename);
 
-  int read_keys();
+  int ReadKeypresses();
 
   void parse_joystick(unsigned char *buf);
 
-  G13_ActionPtr make_action(const std::string &);
+  G13_ActionPtr MakeAction(const std::string &action);
 
-  void set_key_color(int red, int green, int blue);
+  void SetKeyColor(int red, int green, int blue);
 
-  void set_mode_leds(int leds);
+  void SetModeLeds(int leds);
 
-  void send_event(int type, int code, int val);
+  void SendEvent(int type, int code, int val);
 
-  void write_output_pipe(const std::string &out) const;
+  void OutputPipeWrite(const std::string &out) const;
 
   void LcdWrite(unsigned char *data, size_t size);
 
@@ -78,6 +79,7 @@ public:
 
   // used by G13_Manager
   void Cleanup();
+
 
   void RegisterContext(libusb_context *libusbContext);
 
@@ -114,7 +116,7 @@ protected:
   CommandFunctionTable _command_table;
 
   // struct timeval _event_time;
-  struct input_event _event {};
+  struct input_event m_event {};
 
   int m_id_within_manager;
   libusb_context *m_ctx;

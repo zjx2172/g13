@@ -5,7 +5,7 @@
 //
 // TEST_CASE( "Factorials are computed", "[G13Key]" ) {
 //    SECTION("Key symbols can be found after init") {
-//        //auto profile = G13::G13_Profile();
+//        //auto Profile = G13::G13_Profile();
 //        REQUIRE(true);
 //    }
 //}
@@ -50,10 +50,10 @@ TEST(G13Key, g13_key_maps_to_value) {
     EXPECT_EQ((*manager).FindG13KeyValue("G1"), 0);
     EXPECT_EQ((*manager).FindG13KeyValue("G22"), 21);
     // G13::G13_Device device = MockDevice(manager);
-    // G13::G13_Profile profile = MockProfile(device);
+    // G13::G13_Profile Profile = MockProfile(device);
 
-    // auto profile = G13::G13_Profile("",std::string(""),"");
-    // auto key = profile.FindKey("KEY_0");
+    // auto Profile = G13::G13_Profile("",std::string(""),"");
+    // auto key = Profile.FindKey("KEY_0");
     // EXPECT_EQ(key->index(), 10);
 }
 

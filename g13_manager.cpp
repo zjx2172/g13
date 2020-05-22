@@ -41,7 +41,7 @@ void G13_Manager::Cleanup() {
   // TODO: This might be better with an iterator and also g13s.erase(iter)
   for (auto g13 : g13s) {
 
-    g13->Cleanup();
+    // g13->Cleanup();
     delete g13;
   }
   libusb_exit(libusbContext);
@@ -246,8 +246,12 @@ int G13_Manager::Run() {
 
     // Main loop
     for (auto g13 : g13s) {
-      int status = g13->read_keys();
-      g13->read_commands();
+      int status = g13->ReadKeypresses();
+      if (!g13s.empty()) {
+        // Cleanup might have removed the object before this loop has run
+        // TODO: This will not work with multiplt devices and can be better
+        g13->ReadCommandsFromPipe();
+      };
       if (status < 0) {
         running = false;
       }

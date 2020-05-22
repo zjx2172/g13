@@ -46,7 +46,7 @@ std::string G13_Device::DescribeLibusbErrorCode(int code) {
   // return "unknown error";
 }
 
-int g13_create_fifo(const char *fifo_name) {
+int G13CreateFifo(const char *fifo_name) {
   // mkfifo(g13->fifo_name(), 0777); - didn't work
   mkfifo(fifo_name, 0666);
   chmod(fifo_name, 0777);
@@ -54,7 +54,7 @@ int g13_create_fifo(const char *fifo_name) {
   return open(fifo_name, O_RDWR | O_NONBLOCK);
 }
 
-int g13_create_uinput(G13_Device *g13) {
+int G13CreateUinput(G13_Device *g13) {
   struct uinput_user_dev uinp {};
   struct input_event event {};
   const char *dev_uinput_fname =
@@ -123,20 +123,20 @@ int g13_create_uinput(G13_Device *g13) {
 
 // *************************************************************************
 
-void G13_Device::send_event(int type, int code, int val) {
-  memset(&_event, 0, sizeof(_event));
-  gettimeofday(&_event.time, nullptr);
-  _event.type = type;
-  _event.code = code;
-  _event.value = val;
-  write(m_uinput_fid, &_event, sizeof(_event));
+void G13_Device::SendEvent(int type, int code, int val) {
+  memset(&m_event, 0, sizeof(m_event));
+  gettimeofday(&m_event.time, nullptr);
+  m_event.type = type;
+  m_event.code = code;
+  m_event.value = val;
+  write(m_uinput_fid, &m_event, sizeof(m_event));
 }
 
-void G13_Device::write_output_pipe(const std::string &out) const {
+void G13_Device::OutputPipeWrite(const std::string &out) const {
   write(m_output_pipe_fid, out.c_str(), out.size());
 }
 
-void G13_Device::set_mode_leds(int leds) {
+void G13_Device::SetModeLeds(int leds) {
   unsigned char usb_data[] = {5, 0, 0, 0, 0};
   usb_data[1] = leds;
   int error = libusb_control_transfer(
@@ -148,7 +148,7 @@ void G13_Device::set_mode_leds(int leds) {
   }
 }
 
-void G13_Device::set_key_color(int red, int green, int blue) {
+void G13_Device::SetKeyColor(int red, int green, int blue) {
   int error;
   unsigned char usb_data[] = {5, 0, 0, 0, 0};
   usb_data[1] = red;
@@ -167,9 +167,9 @@ void G13_Device::set_key_color(int red, int green, int blue) {
 /*! reads and processes key state report from G13
  *
  */
-int G13_Device::read_keys() {
+int G13_Device::ReadKeypresses() {
   unsigned char buffer[G13_REPORT_SIZE];
-  int size;
+  int size = 0;
   int error =
       libusb_interrupt_transfer(handle, LIBUSB_ENDPOINT_IN | G13_KEY_ENDPOINT,
                                 buffer, G13_REPORT_SIZE, &size, 100);
@@ -184,12 +184,12 @@ int G13_Device::read_keys() {
   if (size == G13_REPORT_SIZE) {
     parse_joystick(buffer);
     m_currentProfile->ParseKeys(buffer);
-    send_event(EV_SYN, SYN_REPORT, 0);
+    SendEvent(EV_SYN, SYN_REPORT, 0);
   }
   return 0;
 }
 
-void G13_Device::read_config_file(const std::string &filename) {
+void G13_Device::ReadConfigFile(const std::string &filename) {
   std::ifstream s(filename);
 
   G13_OUT("reading configuration from " << filename);
@@ -212,12 +212,12 @@ void G13_Device::read_config_file(const std::string &filename) {
     // send it
     if (buf[0]) {
       G13_OUT("  cfg: " << buf);
-      command(buf);
+      Command(buf);
     }
   }
 }
 
-void G13_Device::read_commands() {
+void G13_Device::ReadCommandsFromPipe() {
   fd_set set;
   FD_ZERO(&set);
   FD_SET(m_input_pipe_fid, &set);
@@ -245,14 +245,14 @@ void G13_Device::read_commands() {
 
         if (!command_comment.empty() && command_comment[0] != std::string("")) {
           G13_OUT("command: " << command_comment[0]);
-          command(command_comment[0].c_str());
+          Command(command_comment[0].c_str());
         }
       }
     }
   }
 }
 
-FontPtr G13_Device::switch_to_font(const std::string &name) {
+FontPtr G13_Device::SwitchToFont(const std::string &name) {
   FontPtr rv = pFonts[name];
   if (rv) {
     m_currentFont = rv;
@@ -260,11 +260,11 @@ FontPtr G13_Device::switch_to_font(const std::string &name) {
   return rv;
 }
 
-void G13_Device::switch_to_profile(const std::string &name) {
-  m_currentProfile = profile(name);
+void G13_Device::SwitchToProfile(const std::string &name) {
+  m_currentProfile = Profile(name);
 }
 
-ProfilePtr G13_Device::profile(const std::string &name) {
+ProfilePtr G13_Device::Profile(const std::string &name) {
   ProfilePtr rv = m_profiles[name];
   if (!rv) {
     rv = std::make_shared<G13_Profile>(*m_currentProfile, name);
@@ -273,7 +273,7 @@ ProfilePtr G13_Device::profile(const std::string &name) {
   return rv;
 }
 
-G13_ActionPtr G13_Device::make_action(const std::string &action) {
+G13_ActionPtr G13_Device::MakeAction(const std::string &action) {
   if (action.empty()) {
     throw G13_CommandException("empty action string");
   }
@@ -290,7 +290,7 @@ G13_ActionPtr G13_Device::make_action(const std::string &action) {
 
 // *************************************************************************
 
-void G13_Device::dump(std::ostream &o, int detail) {
+void G13_Device::Dump(std::ostream &o, int detail) {
   o << "G13 id=" << id_within_manager() << std::endl;
   o << "   input_pipe_name=" << Helper::repr(m_input_pipe_name) << std::endl;
   o << "   output_pipe_name=" << Helper::repr(m_output_pipe_name) << std::endl;
@@ -310,12 +310,12 @@ void G13_Device::dump(std::ostream &o, int detail) {
   }
 }
 
-struct command_adder {
-  command_adder(G13_Device::CommandFunctionTable &t, const char *name)
+struct commandAdder {
+  commandAdder(G13_Device::CommandFunctionTable &t, const char *name)
       : _t(t), _name(name) {}
 
-  command_adder(G13_Device::CommandFunctionTable &t, const char *name,
-                G13_Device::COMMAND_FUNCTION f)
+  commandAdder(G13_Device::CommandFunctionTable &t, const char *name,
+               G13_Device::COMMAND_FUNCTION f)
       : _t(t), _name(name) {
     _t[_name] = std::move(f);
   }
@@ -323,7 +323,7 @@ struct command_adder {
   G13_Device::CommandFunctionTable &_t;
   std::string _name;
 
-  command_adder &operator+=(G13_Device::COMMAND_FUNCTION f) {
+  commandAdder &operator+=(G13_Device::COMMAND_FUNCTION f) {
     _t[_name] = std::move(f);
     return *this;
   };
@@ -333,11 +333,11 @@ void G13_Device::InitCommands() {
   using Helper::advance_ws;
   // const char *remainder;
 
-  command_adder add_out(_command_table, "out", [this](const char *remainder) {
+  commandAdder add_out(_command_table, "out", [this](const char *remainder) {
     lcd().WriteString(remainder);
   });
 
-  command_adder add_pos(_command_table, "pos", [this](const char *remainder) {
+  commandAdder add_pos(_command_table, "pos", [this](const char *remainder) {
     int row, col;
     if (sscanf(remainder, "%i %i", &row, &col) == 2) {
       lcd().WritePos(row, col);
@@ -346,15 +346,15 @@ void G13_Device::InitCommands() {
     }
   });
 
-  command_adder add_bind(_command_table, "bind", [this](const char *remainder) {
+  commandAdder add_bind(_command_table, "bind", [this](const char *remainder) {
     std::string keyname;
     advance_ws(remainder, keyname);
     std::string action = remainder;
     try {
       if (auto key = m_currentProfile->FindKey(keyname)) {
-        key->set_action(make_action(action));
+        key->set_action(MakeAction(action));
       } else if (auto stick_key = m_stick.zone(keyname)) {
-        stick_key->set_action(make_action(action));
+        stick_key->set_action(MakeAction(action));
       } else {
         G13_ERR("bind key " << keyname << " unknown");
         return;
@@ -366,32 +366,32 @@ void G13_Device::InitCommands() {
     }
   });
 
-  command_adder add_profile(
-      _command_table, "profile",
-      [this](const char *remainder) { switch_to_profile(remainder); });
+  commandAdder add_profile(
+      _command_table, "Profile",
+      [this](const char *remainder) { SwitchToProfile(remainder); });
 
-  command_adder add_font(_command_table, "font", [this](const char *remainder) {
-    switch_to_font(remainder);
+  commandAdder add_font(_command_table, "font", [this](const char *remainder) {
+    SwitchToFont(remainder);
   });
 
-  command_adder add_mod(_command_table, "mod", [this](const char *remainder) {
-    set_mode_leds(atoi(remainder));
+  commandAdder add_mod(_command_table, "mod", [this](const char *remainder) {
+    SetModeLeds(atoi(remainder));
   });
 
-  command_adder add_textmode(
+  commandAdder add_textmode(
       _command_table, "textmode",
       [this](const char *remainder) { lcd().text_mode = atoi(remainder); });
 
-  command_adder add_rgb(_command_table, "rgb", [this](const char *remainder) {
+  commandAdder add_rgb(_command_table, "rgb", [this](const char *remainder) {
     int red, green, blue;
     if (sscanf(remainder, "%i %i %i", &red, &green, &blue) == 3) {
-      set_key_color(red, green, blue);
+      SetKeyColor(red, green, blue);
     } else {
       G13_ERR("rgb bad format: <" << remainder << ">");
     }
   });
 
-  command_adder add_stickmode(
+  commandAdder add_stickmode(
       _command_table, "stickmode", [this](const char *remainder) {
         std::string mode = remainder;
         // TODO: this could be part of a G13::Constants class I think
@@ -409,7 +409,7 @@ void G13_Device::InitCommands() {
         G13_ERR("unknown stick mode : <" << mode << ">");
       });
 
-  command_adder add_stickzone(
+  commandAdder add_stickzone(
       _command_table, "stickzone", [this](const char *remainder) {
         std::string operation, zonename;
         advance_ws(remainder, operation);
@@ -423,7 +423,7 @@ void G13_Device::InitCommands() {
             throw G13_CommandException("unknown stick zone");
           }
           if (operation == "action") {
-            zone->set_action(make_action(remainder));
+            zone->set_action(MakeAction(remainder));
           } else if (operation == "bounds") {
             double x1, y1, x2, y2;
             if (sscanf(remainder, "%lf %lf %lf %lf", &x1, &y1, &x2, &y2) != 4) {
@@ -432,46 +432,46 @@ void G13_Device::InitCommands() {
             zone->set_bounds(G13_ZoneBounds(x1, y1, x2, y2));
 
           } else if (operation == "del") {
-            m_stick.remove_zone(*zone);
+            m_stick.RemoveZone(*zone);
           } else {
             G13_ERR("unknown stickzone operation: <" << operation << ">");
           }
         }
       });
 
-  command_adder add_dump(_command_table, "dump", [this](const char *remainder) {
+  commandAdder add_dump(_command_table, "dump", [this](const char *remainder) {
     std::string target;
     advance_ws(remainder, target);
     if (target == "all") {
-      dump(std::cout, 3);
+      Dump(std::cout, 3);
     } else if (target == "current") {
-      dump(std::cout, 1);
+      Dump(std::cout, 1);
     } else if (target == "summary") {
-      dump(std::cout, 0);
+      Dump(std::cout, 0);
     } else {
       G13_ERR("unknown dump target: <" << target << ">");
     }
   });
 
-  command_adder add_log_level(_command_table, "log_level",
-                              [this](const char *remainder) {
-                                std::string level;
-                                advance_ws(remainder, level);
-                                G13_Manager::Instance()->SetLogLevel(level);
-                              });
+  commandAdder add_log_level(_command_table, "log_level",
+                             [this](const char *remainder) {
+                               std::string level;
+                               advance_ws(remainder, level);
+                               G13_Manager::Instance()->SetLogLevel(level);
+                             });
 
-  command_adder add_refresh(
+  commandAdder add_refresh(
       _command_table, "refresh",
       [this](const char *remainder) { lcd().image_send(); });
 
-  command_adder add_clear(_command_table, "clear",
-                          [this](const char *remainder) {
-                            lcd().image_clear();
-                            lcd().image_send();
-                          });
+  commandAdder add_clear(_command_table, "clear",
+                         [this](const char *remainder) {
+                           lcd().image_clear();
+                           lcd().image_send();
+                         });
 }
 
-void G13_Device::command(char const *str) {
+void G13_Device::Command(char const *str) {
   const char *remainder = str;
 
   try {
@@ -501,30 +501,34 @@ void G13_Device::RegisterContext(libusb_context *libusbContext) {
   int blue = 255;
   LcdInit();
 
-  set_mode_leds(leds);
-  set_key_color(red, green, blue);
+  SetModeLeds(leds);
+  SetKeyColor(red, green, blue);
 
-  m_uinput_fid = g13_create_uinput(this);
+  m_uinput_fid = G13CreateUinput(this);
   m_input_pipe_name = G13_Manager::Instance()->MakePipeName(this, true);
-  m_input_pipe_fid = g13_create_fifo(m_input_pipe_name.c_str());
+  m_input_pipe_fid = G13CreateFifo(m_input_pipe_name.c_str());
   if (m_input_pipe_fid == -1) {
     G13_ERR("failed opening input pipe " << m_input_pipe_name);
   }
   m_output_pipe_name = G13_Manager::Instance()->MakePipeName(this, false);
-  m_output_pipe_fid = g13_create_fifo(m_output_pipe_name.c_str());
+  m_output_pipe_fid = G13CreateFifo(m_output_pipe_name.c_str());
   if (m_output_pipe_fid == -1) {
     G13_ERR("failed opening output pipe " << m_output_pipe_name);
   }
 }
 
 void G13_Device::Cleanup() {
-  set_key_color(0,0,0);
+  SetKeyColor(0, 0, 0);
   remove(m_input_pipe_name.c_str());
   remove(m_output_pipe_name.c_str());
   ioctl(m_uinput_fid, UI_DEV_DESTROY);
   close(m_uinput_fid);
   libusb_release_interface(handle, 0);
   libusb_close(handle);
+}
+
+G13_Device::~G13_Device() {
+  Cleanup();
 }
 
 // libusb_device_handle *G13_Device::Handle() const { return handle; }
