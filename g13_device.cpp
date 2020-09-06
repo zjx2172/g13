@@ -243,9 +243,13 @@ void G13_Device::ReadCommandsFromPipe() {
         auto command_comment = Helper::split<std::vector<std::string>>(
             cmd, "#", Helper::split::no_empties);
 
-        if (!command_comment.empty() && command_comment[0] != std::string("")) {
-          G13_OUT("command: " << command_comment[0]);
-          Command(command_comment[0].c_str());
+        if (!command_comment.empty()) {
+          while (isspace(command_comment[0].back()))
+            command_comment[0].pop_back();
+          if (command_comment[0] != std::string("")) {
+            G13_OUT("command: " << command_comment[0]);
+            Command(command_comment[0].c_str());
+          }
         }
       }
     }
