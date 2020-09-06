@@ -206,6 +206,7 @@ void G13_Device::ReadConfigFile(const std::string &filename) {
       comment--;
       while (comment > buf && isspace(*comment))
         comment--;
+      comment++;
       *comment = 0;
     }
 
