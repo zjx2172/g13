@@ -14,7 +14,8 @@ G13_Action::~G13_Action() = default;
 G13_Action_Keys::G13_Action_Keys(G13_Device &keypad,
                                  const std::string &keys_string)
     : G13_Action(keypad) {
-  auto keys = Helper::split<std::vector<std::string>>(keys_string, "+");
+  auto keydownup = Helper::split<std::vector<std::string>>(keys_string, " ");
+  auto keys = Helper::split<std::vector<std::string>>(keydownup[0], "+");
 
   for (auto &key : keys) {
     auto kval = G13_Manager::Instance()->FindInputKeyValue(key);
@@ -24,7 +25,19 @@ G13_Action_Keys::G13_Action_Keys(G13_Device &keypad,
     _keys.push_back(kval);
   }
 
+  if (keydownup.size()>1){
+    auto keysup = Helper::split<std::vector<std::string>>(keydownup[1], "+");
+    for (auto &key : keysup) {
+      auto kval = G13_Manager::Instance()->FindInputKeyValue(key);
+      if (kval == BAD_KEY_VALUE) {
+        throw G13_CommandException("create action unknown key : " + key);
+      }
+      _keysup.push_back(kval);
+    }
+  }
+
   std::vector<int> _keys_local;
+  std::vector<int> _keysup_local;
 }
 
 G13_Action_Keys::~G13_Action_Keys() = default;
@@ -35,10 +48,23 @@ void G13_Action_Keys::act(G13_Device &g13, bool is_down) {
       g13.SendEvent(EV_KEY, _key, is_down);
       G13_LOG(log4cpp::Priority::DEBUG << "sending KEY DOWN " << _key);
     }
+    if (!_keysup.empty()) for (int i = _keys.size() - 1; i >= 0; i--) {
+      g13.SendEvent(EV_KEY, _keys[i], !is_down);
+      G13_LOG(log4cpp::Priority::DEBUG << "sending KEY UP " << _keys[i]);
+    }
   } else {
-    for (int i = _keys.size() - 1; i >= 0; i--) {
+    if(_keysup.empty()) for (int i = _keys.size() - 1; i >= 0; i--) {
       g13.SendEvent(EV_KEY, _keys[i], is_down);
       G13_LOG(log4cpp::Priority::DEBUG << "sending KEY UP " << _keys[i]);
+    } else {
+      for (int &_key : _keysup) {
+        g13.SendEvent(EV_KEY, _key, !is_down);
+        G13_LOG(log4cpp::Priority::DEBUG << "sending KEY DOWN " << _key);
+      }
+      for (int i = _keysup.size() - 1; i >= 0; i--) {
+        g13.SendEvent(EV_KEY, _keysup[i], is_down);
+        G13_LOG(log4cpp::Priority::DEBUG << "sending KEY UP " << _keysup[i]);
+      }
     }
   }
 }
