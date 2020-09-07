@@ -61,6 +61,7 @@ public:
   void dump(std::ostream &) const override;
 
   std::vector<LINUX_KEY_VALUE> _keys;
+  std::vector<LINUX_KEY_VALUE> _keysup;
 };
 
 /*!
