@@ -73,9 +73,16 @@ void G13_Action_Keys::dump(std::ostream &out) const {
   out << " SEND KEYS: ";
 
   for (size_t i = 0; i < _keys.size(); i++) {
-    if (i)
-      out << " + ";
+    if (i) out << " + ";
     out << G13_Manager::Instance()->FindInputKeyName(_keys[i]);
+  }
+
+  if (!_keysup.empty()) {
+    out << ", ";
+    for (size_t i = 0; i < _keysup.size(); i++) {
+      if (i) out << " + ";
+      out << G13_Manager::Instance()->FindInputKeyName(_keysup[i]);
+    }
   }
 }
 
@@ -106,6 +113,7 @@ void G13_Action_PipeOut::act(G13_Device &kp, bool is_down) {
 
 void G13_Action_PipeOut::dump(std::ostream &o) const {
   o << "WRITE PIPE : " << Helper::repr(_out);
+  if (!_outup.empty()) o << ", " << Helper::repr(_outup);
 }
 
 G13_Action_Command::G13_Action_Command(G13_Device &keypad, std::string cmd)
