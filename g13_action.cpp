@@ -35,9 +35,9 @@ G13_Action_Keys::G13_Action_Keys(G13_Device &keypad,
       _keysup.push_back(kval);
     }
   }
-
-  std::vector<int> _keys_local;
-  std::vector<int> _keysup_local;
+  // are these required?
+  //std::vector<int> _keys_local;
+  //std::vector<int> _keysup_local;
 }
 
 G13_Action_Keys::~G13_Action_Keys() = default;
@@ -80,14 +80,27 @@ void G13_Action_Keys::dump(std::ostream &out) const {
 }
 
 G13_Action_PipeOut::G13_Action_PipeOut(G13_Device &keypad,
-                                       const std::string &out)
-    : G13_Action(keypad), _out(out + "\n") {}
+       	                               const std::string &out,
+                                       const bool split)
+    : G13_Action(keypad) {
+  if (split) {
+    std::size_t up = out.find('|');
+    if (up!=std::string::npos && up < out.length() - 1)
+      _outup = out.substr(up+1,std::string::npos) + "\n";
+    if (up) _out = out.substr(0,up) + "\n";
+  } else _out = out + "\n";
+  // are these required?
+  //std::string _out_local;
+  //std::string _outup_local;
+}
 
 G13_Action_PipeOut::~G13_Action_PipeOut() = default;
 
 void G13_Action_PipeOut::act(G13_Device &kp, bool is_down) {
   if (is_down) {
-    kp.OutputPipeWrite(_out);
+    if(!_out.empty()) kp.OutputPipeWrite(_out);
+  } else if(!_outup.empty()) {
+    kp.OutputPipeWrite(_outup);
   }
 }
 
