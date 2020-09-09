@@ -373,7 +373,7 @@ void G13_Device::InitCommands() {
   });
 
   commandAdder add_profile(
-      _command_table, "Profile",
+      _command_table, "profile",
       [this](const char *remainder) { SwitchToProfile(remainder); });
 
   commandAdder add_font(_command_table, "font", [this](const char *remainder) {
