@@ -2,6 +2,7 @@
  * This file contains code for managing keys and profiles
  */
 #include "g13.hpp"
+#include <algorithm>
 
 namespace G13 {
 
